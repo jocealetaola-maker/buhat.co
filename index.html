@@ -3,653 +3,252 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
-<title>buhat Admin</title>
+<title>buhat · Systems for small businesses</title>
+<meta name="description" content="buhat builds simple, ready-to-use systems for small business owners. First up: buhat Café — POS, shifts, inventory, payroll and reports in one app.">
+<meta property="og:title" content="buhat · Systems for small businesses">
+<meta property="og:description" content="POS, shifts, inventory, payroll and reports for your café. Join the waitlist on WhatsApp.">
+<meta property="og:image" content="https://buhat.co/dashboard.webp">
 <meta name="theme-color" content="#121314">
-<link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Outfit:wght@400;500;600;700&family=Spline+Sans+Mono:wght@500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --onyx:#121314; --bg:#161719; --card:#1f2022; --card2:#26272a; --smoke:#36373a; --line:#2c2d30;
-  --ivory:#F4F1EA; --muted:#B9B4AA; --dim:#8f8b83;
-  --brass:#B8955B; --brass-hi:#cfae76; --good:#6ee59b; --warn:#e8b65c; --bad:#ef8a73; --info:#8fb8e8;
-  --disp:'Fraunces',Georgia,serif; --ui:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif; --mono:'Spline Sans Mono',ui-monospace,monospace;
+  --onyx:#121314; --graphite:#1d1e20; --card:#232427; --smoke:#3A3B3D; --ivory:#F4F1EA; --muted:#B9B4AA; --dim:#8f8b83;
+  --brass:#B8955B; --brass-hi:#cfae76; --wa:#25D366;
+  --disp:'Fraunces',Georgia,serif; --ui:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --max:1120px;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ivory);font:15.5px/1.5 var(--ui);-webkit-font-smoothing:antialiased}
-button,input,select,textarea{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
-.hide{display:none!important}
-h1,h2,h3{font-family:var(--disp);font-weight:500;margin:0;letter-spacing:-.01em;color:var(--ivory)}
-.muted{color:var(--muted)} .dim{color:var(--dim)} .mono{font-family:var(--mono)}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--onyx);color:var(--ivory);font:17px/1.6 var(--ui);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+img{max-width:100%;height:auto;display:block}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 20px}
+:focus-visible{outline:2px solid var(--brass);outline-offset:3px;border-radius:6px}
 
-/* buttons + inputs */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:8px 16px;border-radius:10px;border:1px solid var(--smoke);background:var(--card2);font-weight:600;font-size:14.5px;cursor:pointer;text-decoration:none;white-space:nowrap;color:var(--ivory)}
-.btn:hover{border-color:var(--brass)}
-.btn.btn-brass{background:var(--brass);border-color:var(--brass);color:var(--onyx)}
+/* nav */
+header{position:sticky;top:0;z-index:20;background:rgba(18,19,20,.86);backdrop-filter:blur(10px);border-bottom:1px solid rgba(58,59,61,.6)}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:16px;height:68px}
+.nav .logo svg{height:40px;width:auto}
+.nav nav{display:flex;align-items:center;gap:22px;font-size:15px}
+.nav nav a{text-decoration:none;color:var(--muted)}
+.nav nav a:hover{color:var(--ivory)}
+.nav nav a.btn{color:var(--onyx)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:48px;padding:12px 22px;border-radius:12px;font:600 16px var(--ui);text-decoration:none;border:0;cursor:pointer}
+.btn-brass{background:var(--brass);color:var(--onyx)}
 .btn-brass:hover{background:var(--brass-hi)}
-.btn-danger{color:var(--bad)} .btn-danger:hover{border-color:var(--bad)}
-.btn-sm{min-height:32px;padding:4px 11px;font-size:13.5px;border-radius:8px}
-.btn:disabled{opacity:.55;cursor:wait}
-.in{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--smoke);background:var(--onyx);min-height:42px}
-.in:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 3px rgba(184,149,91,.22)}
-label.f{display:block} label.f>span{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.btn-ghost{background:transparent;color:var(--ivory);border:1px solid var(--smoke)}
+.btn-ghost:hover{border-color:var(--brass)}
+.btn-sm{min-height:40px;padding:8px 16px;font-size:14.5px}
+.wa-ico{width:20px;height:20px;flex:none}
 
-/* login */
-.login{min-height:100dvh;display:grid;place-items:center;padding:24px 16px;background:radial-gradient(110% 70% at 50% -10%,#1f2022 0%,var(--onyx) 60%)}
-.login .box{width:min(400px,100%);background:var(--card);border:1px solid var(--smoke);border-radius:20px;padding:30px 26px}
-.login .logo{display:flex;justify-content:center;margin-bottom:4px} .login .logo svg{height:52px;width:auto}
-.login p.tag{text-align:center;color:var(--muted);margin:0 0 20px;font-size:14px}
-.login .f{margin-top:12px}
-.login .btn{width:100%;margin-top:18px;min-height:46px}
-.err{color:var(--bad);font-size:14px;min-height:1.3em;margin-top:10px}
+/* hero */
+.hero{padding:88px 0 40px;background:radial-gradient(90% 60% at 70% 0%,#24221e 0%,var(--onyx) 65%)}
+.eyebrow{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);font-weight:600;margin:0 0 18px}
+h1,h2,h3{font-family:var(--disp);font-weight:500;letter-spacing:-.01em;margin:0;color:var(--ivory)}
+h1{font-size:clamp(40px,6.4vw,72px);line-height:1.04;max-width:14ch}
+h1 em{font-style:italic;color:var(--brass)}
+.lede{font-size:clamp(18px,2.1vw,21px);color:var(--muted);max-width:56ch;margin:24px 0 34px}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px}
+.hero-shot{position:relative;margin-top:64px}
+.hero-shot .desk{border-radius:16px;border:1px solid var(--smoke);box-shadow:0 40px 90px rgba(0,0,0,.55);width:86%}
+.hero-shot .phone{position:absolute;right:0;bottom:-36px;width:21%;aspect-ratio:9/16;object-fit:cover;object-position:top;border-radius:26px;border:6px solid #000;box-shadow:0 30px 60px rgba(0,0,0,.6)}
 
-/* shell */
-.shell{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100dvh}
-aside{background:var(--onyx);border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;gap:18px;position:sticky;top:0;height:100dvh}
-aside .logo svg{height:38px;width:auto}
-.side-label{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:0 8px 6px;font-weight:600}
-.app-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px;border-radius:12px;border:1px solid transparent;background:none;text-align:left;cursor:pointer}
-.app-btn .ai{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--card2);font-size:17px;flex:none}
-.app-btn b{display:block;font-weight:600;font-size:14.5px} .app-btn small{color:var(--dim);font-size:12.5px}
-.app-btn.on{background:var(--card);border-color:var(--smoke)}
-.app-btn:disabled{cursor:default;opacity:.6}
-.tabs{display:flex;flex-direction:column;gap:2px}
-.tabs button{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-radius:10px;border:0;background:none;color:var(--muted);text-align:left;cursor:pointer;font-weight:500}
-.tabs button:hover{color:var(--ivory);background:var(--card)}
-.tabs button.on{background:var(--brass);color:var(--onyx);font-weight:600}
-.tabs .count{font-size:12px;background:rgba(239,138,115,.18);color:var(--bad);border-radius:999px;padding:1px 8px;font-weight:700}
-.tabs button.on .count{background:rgba(18,19,20,.2);color:var(--onyx)}
-.side-foot{margin-top:auto;font-size:13px;color:var(--dim);display:flex;flex-direction:column;gap:8px}
-.side-foot .btn{width:100%}
-main{padding:28px 32px 60px;min-width:0}
-.top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
-.top h1{font-size:32px}
-.top .crumb{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);font-weight:600;margin-bottom:4px}
-.mtop{display:none}
+/* sections */
+section{padding:96px 0}
+.sec-head{max-width:640px;margin-bottom:44px}
+.sec-head h2{font-size:clamp(30px,4vw,44px);line-height:1.12}
+.sec-head p{color:var(--muted);margin:14px 0 0}
+.alt{background:var(--graphite);border-top:1px solid #26272a;border-bottom:1px solid #26272a}
 
-/* cards */
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
-.card+.card{margin-top:16px}
-.kpis .card,.two .card{margin-top:0}
-.two{margin-bottom:16px}
-.card h3{font-size:19px;margin-bottom:12px}
-.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px}
-.kpi .l{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
-.kpi .v{font-family:var(--mono);font-size:26px;margin-top:6px}
-.kpi .s{font-size:13px;color:var(--dim);margin-top:2px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.feat{background:var(--card);border:1px solid var(--smoke);border-radius:16px;padding:24px}
+.feat .ic{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:rgba(184,149,91,.14);color:var(--brass);margin-bottom:14px}
+.feat .ic svg{width:22px;height:22px}
+.feat h3{font-size:21px;margin-bottom:6px}
+.feat p{margin:0;color:var(--muted);font-size:15.5px}
 
-/* tables */
-.tw{overflow-x:auto;margin:0 -4px}
-table{width:100%;border-collapse:collapse;font-size:14.5px}
-th{text-align:left;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
-td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
-tr:last-child td{border-bottom:0}
-tr.click{cursor:pointer} tr.click:hover td{background:var(--card2)}
-.name b{display:block;font-weight:600} .name small{color:var(--dim)}
-.pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
-.p-good{background:rgba(110,229,155,.13);color:var(--good)} .p-warn{background:rgba(232,182,92,.15);color:var(--warn)}
-.p-bad{background:rgba(239,138,115,.15);color:var(--bad)} .p-info{background:rgba(143,184,232,.14);color:var(--info)} .p-dim{background:var(--card2);color:var(--muted)}
-.empty{color:var(--dim);padding:18px 4px;text-align:center}
-.row-act{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
-.list-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
-.list-row:last-child{border-bottom:0}
-.code{font-family:var(--mono);font-size:15px;letter-spacing:.04em;background:var(--onyx);border:1px solid var(--smoke);padding:3px 9px;border-radius:7px}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;counter-reset:s}
+.step{border-top:1px solid var(--smoke);padding-top:22px}
+.step::before{counter-increment:s;content:"0" counter(s);font-family:var(--disp);font-size:34px;color:var(--brass);display:block;margin-bottom:8px}
+.step h3{font-size:22px;margin-bottom:6px}
+.step p{margin:0;color:var(--muted)}
 
-/* toggle */
-.seg{display:inline-flex;background:var(--onyx);border:1px solid var(--smoke);border-radius:11px;padding:3px}
-.seg button{border:0;background:none;padding:6px 12px;border-radius:8px;cursor:pointer;color:var(--muted);font-weight:600;font-size:13.5px}
-.seg button.on{background:var(--card2);color:var(--ivory);box-shadow:inset 0 0 0 1px var(--smoke)}
+.next{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+.next ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.next li{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:16px 18px;background:var(--card);border:1px solid var(--smoke);border-radius:14px}
+.tag{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.tag.live{background:rgba(37,211,102,.14);color:#6ee59b}
+.tag.soon{background:rgba(184,149,91,.14);color:var(--brass-hi)}
 
-/* drawer + modal */
-.scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:40}
-.drawer{position:fixed;top:0;right:0;bottom:0;width:min(640px,100%);background:var(--bg);border-left:1px solid var(--smoke);z-index:41;overflow-y:auto;padding:22px 22px 40px}
-.drawer .dh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:16px}
-.drawer h2{font-size:26px}
-.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100% - 32px));max-height:calc(100dvh - 32px);overflow:auto;background:var(--card);border:1px solid var(--smoke);border-radius:18px;padding:22px;z-index:51}
-.modal h3{font-size:21px;margin-bottom:10px}
-.modal .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;flex-wrap:wrap}
-.modal-scrim{z-index:50}
-.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ivory);color:var(--onyx);padding:10px 18px;border-radius:12px;font-weight:600;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.4);max-width:calc(100% - 32px)}
-.toast.bad{background:var(--bad)}
-.newcode{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(184,149,91,.1);border:1px solid rgba(184,149,91,.4);border-radius:12px;padding:12px 14px;margin-top:14px}
-.newcode .code{font-size:20px}
-.sec{margin-top:22px} .sec>h3{font-size:18px;margin-bottom:10px}
-.note{font-size:13.5px;color:var(--dim);margin-top:8px}
-.spin{display:inline-block;width:16px;height:16px;border:2px solid var(--smoke);border-top-color:var(--brass);border-radius:50%;animation:sp .7s linear infinite}
-@keyframes sp{to{transform:rotate(360deg)}}
+/* waitlist */
+.wl{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.wl form{background:var(--card);border:1px solid var(--smoke);border-radius:18px;padding:26px}
+.wl label{display:block;margin-bottom:14px}
+.wl label span{display:block;font-size:13.5px;color:var(--muted);margin-bottom:6px}
+.wl input,.wl select{width:100%;padding:13px 14px;border-radius:11px;border:1px solid var(--smoke);background:var(--onyx);color:var(--ivory);font:16px var(--ui)}
+.wl input:focus,.wl select:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 3px rgba(184,149,91,.25)}
+.wl .btn{width:100%;margin-top:6px}
+.wl .fine{font-size:13.5px;color:var(--dim);margin:12px 0 0;text-align:center}
+.wl .direct{margin-top:20px;color:var(--muted)}
+.wl .direct a{color:var(--brass);font-weight:600}
 
-@media(max-width:1000px){ .kpis{grid-template-columns:1fr 1fr} .two{grid-template-columns:1fr} }
-@media(max-width:760px){
-  .shell{grid-template-columns:minmax(0,1fr)}
-  aside{min-width:0}
-  .side-foot .btn{width:auto;flex:1}
-  aside{position:static;height:auto;padding:12px 14px;gap:10px;border-right:0;border-bottom:1px solid var(--line)}
-  aside .apps,aside .side-label,.side-foot .who{display:none}
-  aside .logo{display:none}
-  .tabs{flex-direction:row;overflow-x:auto;gap:4px;scrollbar-width:none}
-  .tabs button{white-space:nowrap;gap:6px}
-  .side-foot{margin-top:0;flex-direction:row}
-  .mtop{display:flex;justify-content:space-between;align-items:center}
-  .mtop svg{height:30px;width:auto}
-  main{padding:18px 16px 48px}
-  .top h1{font-size:26px}
-  .grid2,.grid3{grid-template-columns:1fr}
-  .kpi .v{font-size:21px}
-  .hide-m{display:none}
+footer{padding:40px 0 56px;color:var(--dim);font-size:14px;border-top:1px solid #26272a}
+.foot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center}
+.foot svg{height:32px;width:auto}
+.foot a{color:var(--muted)}
+
+@media(max-width:900px){
+  .features{grid-template-columns:1fr 1fr}
+  .next,.wl{grid-template-columns:1fr}
 }
+@media(max-width:640px){
+  body{font-size:16px}
+  .nav nav a:not(.btn){display:none}
+  .hero{padding-top:56px}
+  section{padding:68px 0}
+  .features,.steps{grid-template-columns:1fr}
+  .hero-shot .desk{width:100%}
+  .hero-shot .phone{width:30%;bottom:-28px;right:-4px;border-width:4px;border-radius:18px}
+  .cta-row .btn{width:100%}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#top" aria-label="buhat home" id="navLogo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 363 120" width="182" height="60" role="img" aria-label="buhat"><rect x="12" y="12" width="96" height="96" rx="23.0" fill="#121314"/><rect x="13.9" y="13.9" width="92.2" height="92.2" rx="21.1" fill="none" stroke="#3A3B3D" stroke-width="1.2"/><path d="M56.83919999999999 84.62879999999998Q53.327999999999996 84.62879999999998 50.5056 83.15879999999999Q47.6832 81.68879999999999 45.9948 79.14359999999999Q44.3064 76.59839999999998 44.172 73.40639999999999V61.88159999999999Q44.3064 58.6896 46.019999999999996 56.1864Q47.733599999999996 53.6832 50.556 52.2552Q53.3784 50.8272 56.83919999999999 50.8272Q61.3416 50.8272 64.9032 53.0616Q68.4648 55.29599999999999 70.5144 59.117999999999995Q72.564 62.94 72.564 67.77839999999999Q72.564 72.56639999999999 70.5144 76.38Q68.4648 80.19359999999999 64.9032 82.41119999999998Q61.3416 84.62879999999998 56.83919999999999 84.62879999999998ZM38.796 83.95679999999999V35.3712H47.6328V59.47919999999999L46.1376 67.3248L47.5488 75.23759999999999V83.95679999999999ZM55.3272 76.49759999999999Q57.746399999999994 76.49759999999999 59.59439999999999 75.38039999999998Q61.44239999999999 74.26319999999998 62.50079999999999 72.28079999999999Q63.55919999999999 70.29839999999999 63.55919999999999 67.728Q63.55919999999999 65.15759999999999 62.50079999999999 63.17519999999999Q61.44239999999999 61.19279999999999 59.586 60.075599999999994Q57.7296 58.9584 55.3104 58.9584Q52.8912 58.9584 51.018 60.075599999999994Q49.1448 61.19279999999999 48.12 63.16679999999999Q47.0952 65.14079999999998 47.0952 67.728Q47.0952 70.31519999999999 48.1284 72.29759999999999Q49.1616 74.27999999999999 51.034800000000004 75.38879999999999Q52.908 76.49759999999999 55.3272 76.49759999999999Z" fill="#F4F1EA"/><circle cx="82.6" cy="38.9" r="7.2" fill="#B8955B"/><path d="M156.55399999999997 90.76500000000001Q152.165 90.76500000000001 148.637 88.92750000000001Q145.10899999999998 87.09000000000002 142.99849999999998 83.9085Q140.88799999999998 80.727 140.72 76.73700000000001V62.33100000000001Q140.88799999999998 58.34100000000001 143.02999999999997 55.212Q145.172 52.083000000000006 148.7 50.29800000000001Q152.22799999999998 48.51300000000001 156.55399999999997 48.51300000000001Q162.182 48.51300000000001 166.634 51.30600000000001Q171.08599999999998 54.09900000000001 173.64799999999997 58.87650000000001Q176.20999999999998 63.65400000000001 176.20999999999998 69.70200000000001Q176.20999999999998 75.68700000000001 173.64799999999997 80.45400000000001Q171.08599999999998 85.221 166.634 87.99300000000001Q162.182 90.76500000000001 156.55399999999997 90.76500000000001ZM134.0 89.92500000000001V29.193000000000005H145.046V59.32800000000001L143.177 69.135L144.94099999999997 79.02600000000001V89.92500000000001ZM154.664 80.60100000000001Q157.688 80.60100000000001 159.998 79.20450000000001Q162.308 77.808 163.63099999999997 75.33000000000001Q164.95399999999998 72.852 164.95399999999998 69.63900000000001Q164.95399999999998 66.42600000000002 163.63099999999997 63.948000000000015Q162.308 61.47000000000001 159.9875 60.07350000000001Q157.667 58.67700000000001 154.643 58.67700000000001Q151.619 58.67700000000001 149.27749999999997 60.07350000000001Q146.93599999999998 61.47000000000001 145.65499999999997 63.93750000000001Q144.374 66.405 144.374 69.63900000000001Q144.374 72.87300000000002 145.6655 75.35100000000001Q146.957 77.82900000000001 149.2985 79.215Q151.64 80.60100000000001 154.664 80.60100000000001ZM199.87699999999998 90.80700000000002Q194.54692805755394 90.80700000000002 190.37646402877698 88.51800000000001Q186.206 86.22900000000001 183.86449999999996 82.19619809069214Q181.52299999999997 78.16339618138426 181.52299999999997 72.89320175796031V49.35300000000001H192.569V72.62100000000001Q192.569 75.14424000000001 193.42737499999998 76.93422000000001Q194.28574999999998 78.72420000000001 195.94697115384614 79.68360000000001Q197.6081923076923 80.64300000000001 199.89763793103447 80.64300000000001Q203.34199999999998 80.64300000000001 205.253 78.54174Q207.164 76.44048000000001 207.164 72.62100000000001V49.35300000000001H218.20999999999998V72.894Q218.20999999999998 78.22800000000001 215.87899999999996 82.26000000000002Q213.54799999999997 86.29200000000002 209.41719424460427 88.54950000000002Q205.2863884892086 90.80700000000002 199.87699999999998 90.80700000000002ZM253.36399999999998 89.92500000000001V66.67800000000001Q253.36399999999998 63.04500000000001 251.09599999999998 60.76650000000001Q248.82799999999997 58.488000000000014 245.29442857142857 58.488000000000014Q242.88992857142856 58.488000000000014 241.03946428571427 59.51700000000001Q239.189 60.54600000000001 238.1495 62.404500000000006Q237.10999999999999 64.263 237.10999999999999 66.67800000000001L232.80499999999998 64.45200000000001Q232.80499999999998 59.72700000000001 234.83149999999998 56.14650000000001Q236.85799999999998 52.56600000000001 240.44244416243652 50.53950000000001Q244.02688832487308 48.51300000000001 248.62194416243653 48.51300000000001Q253.259 48.51300000000001 256.829 50.51850000000001Q260.399 52.52400000000001 262.4045 56.05200000000001Q264.40999999999997 59.58000000000001 264.40999999999997 64.221V89.92500000000001ZM226.064 89.92500000000001V29.193000000000005H237.10999999999999V89.92500000000001ZM289.4 90.76500000000001Q283.856 90.76500000000001 279.4355 87.99300000000001Q275.015 85.221 272.46349999999995 80.45400000000001Q269.912 75.68700000000001 269.912 69.70200000000001Q269.912 63.65400000000001 272.46349999999995 58.87650000000001Q275.015 54.09900000000001 279.4355 51.30600000000001Q283.856 48.51300000000001 289.4 48.51300000000001Q293.768 48.51300000000001 297.212 50.29800000000001Q300.65599999999995 52.083000000000006 302.7455 55.212Q304.835 58.34100000000001 304.98199999999997 62.33100000000001V76.947Q304.835 80.93700000000001 302.777 84.066Q300.719 87.19500000000001 297.2435 88.98000000000002Q293.768 90.76500000000001 289.4 90.76500000000001ZM291.45799999999997 80.60100000000001Q296.078 80.60100000000001 298.913 77.52450000000002Q301.748 74.44800000000001 301.748 69.63900000000001Q301.748 66.405 300.467 63.93750000000001Q299.186 61.47000000000001 296.876 60.07350000000001Q294.566 58.67700000000001 291.479 58.67700000000001Q288.455 58.67700000000001 286.145 60.07350000000001Q283.835 61.47000000000001 282.50149999999996 63.948000000000015Q281.16799999999995 66.42600000000002 281.16799999999995 69.63900000000001Q281.16799999999995 72.852 282.491 75.33000000000001Q283.81399999999996 77.808 286.1345 79.20450000000001Q288.455 80.60100000000001 291.45799999999997 80.60100000000001ZM301.181 89.92500000000001V79.02600000000001L302.945 69.135L301.181 59.32800000000001V49.35300000000001H312.12199999999996V89.92500000000001ZM326.948 89.92500000000001V32.51100000000001H337.99399999999997V89.92500000000001ZM317.498 59.013000000000005V49.35300000000001H347.444V59.013000000000005Z" fill="#F4F1EA"/></svg></a>
+    <nav aria-label="Main">
+      <a href="#cafe">Café system</a>
+      <a href="#how">How it works</a>
+      <a href="https://cafe.buhat.co">Log in</a>
+      <a class="btn btn-brass btn-sm" href="#waitlist">Join the waitlist</a>
+    </nav>
+  </div>
+</header>
 
-<div id="loginView" class="login hide">
-  <form class="box" id="loginForm">
-    <div class="logo" data-logo></div>
-    <p class="tag">Admin</p>
-    <label class="f"><span>Email</span><input class="in" id="lEmail" type="email" autocomplete="username" required></label>
-    <label class="f"><span>Password</span><input class="in" id="lPass" type="password" autocomplete="current-password" required></label>
-    <button class="btn btn-brass" id="lBtn" type="submit">Log in</button>
-    <div class="err" id="lErr" role="alert"></div>
-  </form>
-</div>
+<main id="top">
+  <div class="hero">
+    <div class="wrap">
+      <p class="eyebrow">buhat · systems for small businesses</p>
+      <h1>Run the shop. <em>Let the system carry the rest.</em></h1>
+      <p class="lede">buhat builds simple, ready-to-use systems for business owners in the Philippines and beyond. Sales, staff, stock and payroll in one place, so you can see how the business is really doing. First up: cafés.</p>
+      <div class="cta-row">
+        <a class="btn btn-brass" href="#waitlist">Join the waitlist</a>
+        <a class="btn btn-ghost" href="#cafe">See the café system</a>
+      </div>
+      <div class="hero-shot">
+        <img class="desk" src="dashboard.webp" width="1600" height="1000" alt="buhat Café dashboard showing weekly sales, expenses, average order, gross margin, best-selling drinks and red flags">
+        <img class="phone" src="pos-phone.webp" width="600" height="1298" alt="buhat Café point of sale on a phone">
+      </div>
+    </div>
+  </div>
 
-<div id="loadingView" class="login"><span class="spin" aria-label="Loading"></span></div>
+  <section id="cafe">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">buhat Café</p>
+        <h2>Everything behind the counter, in one app.</h2>
+        <p>Built inside a working café in Davao and used there every day. It runs on the tablet at the counter and on your phone. Nothing to install.</p>
+      </div>
+      <div class="features">
+        <div class="feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></div>
+          <h3>Point of sale</h3><p>Fast ordering, best sellers up top, cash, GCash or split payments. GCash payments get checked by the person who holds the account.</p></div>
+        <div class="feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+          <h3>Shifts &amp; staff logins</h3><p>Each barista signs in with their own PIN and clocks in and out. Every sale and expense is tied to the shift that made it.</p></div>
+        <div class="feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l8-4 8 4-8 4-8-4z"/><path d="M4 12l8 4 8-4M4 17l8 4 8-4"/></svg></div>
+          <h3>Inventory &amp; recipe costs</h3><p>Recipes deduct stock as you sell. See what each drink costs to make, and get a heads-up before you run out.</p></div>
+        <div class="feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></div>
+          <h3>Expenses with approvals</h3><p>Staff log what they spend from the register. The owner approves it. Receipts and partner cash advances are all on record.</p></div>
+        <div class="feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+          <h3>Payroll &amp; payslips</h3><p>A weekly calendar from real clock-ins: late, overtime and holidays worked out for you. Print payslips and certificates of employment.</p></div>
+        <div class="feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
+          <h3>Reports that answer questions</h3><p>Sales by hour, day, week or month, compared with before. Margins, best sellers and a business health check.</p></div>
+      </div>
+    </div>
+  </section>
 
-<div id="appView" class="shell hide">
-  <aside>
-    <div class="mtop"><span data-logo></span><button class="btn btn-sm" id="mSignOut">Sign out</button></div>
-    <div class="logo" data-logo></div>
-    <div class="apps">
-      <p class="side-label">Systems</p>
-      <button class="app-btn on" type="button"><span class="ai">☕</span><span><b>buhat Café</b><small>cafe.buhat.co</small></span></button>
-      <button class="app-btn" type="button" disabled title="Your next system will show up here"><span class="ai">＋</span><span><b>Next system</b><small>Coming later</small></span></button>
+  <section id="how" class="alt">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Getting started</p>
+        <h2>Up and running in a day.</h2>
+      </div>
+      <div class="steps">
+        <div class="step"><h3>Message us</h3><p>Tell us about your café on WhatsApp. We'll show you the system and answer your questions.</p></div>
+        <div class="step"><h3>We set it up with you</h3><p>Your menu, recipes, staff and PINs go in, and your counter tablet gets linked.</p></div>
+        <div class="step"><h3>Start selling</h3><p>Staff sign in with their PIN. You watch sales, shifts and stock from your phone.</p></div>
+      </div>
     </div>
-    <div>
-      <p class="side-label">Café system</p>
-      <div class="tabs" id="tabs" role="tablist"></div>
+  </section>
+
+  <section id="systems">
+    <div class="wrap next">
+      <div class="sec-head" style="margin-bottom:0">
+        <p class="eyebrow">What's next</p>
+        <h2>More industries, same idea.</h2>
+        <p>buhat is a family of systems for small businesses. Café is the first. Tell us what your business runs on and we'll let you know when it's ready.</p>
+      </div>
+      <ul>
+        <li><span>buhat Café</span><span class="tag live">Live</span></li>
+        <li><span>Your industry next?</span><span class="tag soon">Coming soon</span></li>
+      </ul>
     </div>
-    <div class="side-foot">
-      <span class="who" id="who"></span>
-      <a class="btn btn-sm" href="https://cafe.buhat.co" target="_blank" rel="noopener">Open café app ↗</a>
-      <button class="btn btn-sm hide-m" id="signOut">Sign out</button>
+  </section>
+
+  <section id="waitlist" class="alt">
+    <div class="wrap wl">
+      <div class="sec-head">
+        <p class="eyebrow">Waitlist</p>
+        <h2>Join the waitlist.</h2>
+        <p>We're onboarding a few businesses at a time so each one gets set up properly. Leave your details and we'll message you on WhatsApp.</p>
+        <p class="direct">Prefer to message straight away? <a id="waDirect" href="#" target="_blank" rel="noopener">WhatsApp +63 951 751 6681</a></p>
+      </div>
+      <form id="wlForm" novalidate>
+        <label><span>Your name</span><input id="wlName" autocomplete="name" required></label>
+        <label><span>Business name</span><input id="wlBiz" autocomplete="organization" required></label>
+        <label><span>Type of business</span>
+          <select id="wlType">
+            <option>Café / coffee shop</option>
+            <option>Restaurant / food stall</option>
+            <option>Bakery</option>
+            <option>Retail shop</option>
+            <option>Salon / services</option>
+            <option>Something else</option>
+          </select></label>
+        <label><span>City</span><input id="wlCity" autocomplete="address-level2"></label>
+        <button class="btn btn-brass" type="submit">
+          <svg class="wa-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2 3.1 4.9 4.3.7.3 1.2.5 1.7.6.7.2 1.3.2 1.8.1.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3zM12 21.8c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.7 1 1-3.6-.2-.4c-1-1.6-1.6-3.4-1.6-5.3C2.1 6.5 6.5 2.2 12 2.2c2.6 0 5.1 1 7 2.9 1.9 1.9 2.9 4.3 2.9 7 0 5.4-4.4 9.7-9.9 9.7z"/></svg>
+          Send on WhatsApp</button>
+        <p class="fine">Opens WhatsApp with your details filled in. Nothing is sent until you tap send.</p>
+      </form>
     </div>
-  </aside>
-  <main id="main"></main>
-</div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span id="footLogo" aria-label="buhat"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 363 120" width="182" height="60" role="img" aria-label="buhat"><rect x="12" y="12" width="96" height="96" rx="23.0" fill="#121314"/><rect x="13.9" y="13.9" width="92.2" height="92.2" rx="21.1" fill="none" stroke="#3A3B3D" stroke-width="1.2"/><path d="M56.83919999999999 84.62879999999998Q53.327999999999996 84.62879999999998 50.5056 83.15879999999999Q47.6832 81.68879999999999 45.9948 79.14359999999999Q44.3064 76.59839999999998 44.172 73.40639999999999V61.88159999999999Q44.3064 58.6896 46.019999999999996 56.1864Q47.733599999999996 53.6832 50.556 52.2552Q53.3784 50.8272 56.83919999999999 50.8272Q61.3416 50.8272 64.9032 53.0616Q68.4648 55.29599999999999 70.5144 59.117999999999995Q72.564 62.94 72.564 67.77839999999999Q72.564 72.56639999999999 70.5144 76.38Q68.4648 80.19359999999999 64.9032 82.41119999999998Q61.3416 84.62879999999998 56.83919999999999 84.62879999999998ZM38.796 83.95679999999999V35.3712H47.6328V59.47919999999999L46.1376 67.3248L47.5488 75.23759999999999V83.95679999999999ZM55.3272 76.49759999999999Q57.746399999999994 76.49759999999999 59.59439999999999 75.38039999999998Q61.44239999999999 74.26319999999998 62.50079999999999 72.28079999999999Q63.55919999999999 70.29839999999999 63.55919999999999 67.728Q63.55919999999999 65.15759999999999 62.50079999999999 63.17519999999999Q61.44239999999999 61.19279999999999 59.586 60.075599999999994Q57.7296 58.9584 55.3104 58.9584Q52.8912 58.9584 51.018 60.075599999999994Q49.1448 61.19279999999999 48.12 63.16679999999999Q47.0952 65.14079999999998 47.0952 67.728Q47.0952 70.31519999999999 48.1284 72.29759999999999Q49.1616 74.27999999999999 51.034800000000004 75.38879999999999Q52.908 76.49759999999999 55.3272 76.49759999999999Z" fill="#F4F1EA"/><circle cx="82.6" cy="38.9" r="7.2" fill="#B8955B"/><path d="M156.55399999999997 90.76500000000001Q152.165 90.76500000000001 148.637 88.92750000000001Q145.10899999999998 87.09000000000002 142.99849999999998 83.9085Q140.88799999999998 80.727 140.72 76.73700000000001V62.33100000000001Q140.88799999999998 58.34100000000001 143.02999999999997 55.212Q145.172 52.083000000000006 148.7 50.29800000000001Q152.22799999999998 48.51300000000001 156.55399999999997 48.51300000000001Q162.182 48.51300000000001 166.634 51.30600000000001Q171.08599999999998 54.09900000000001 173.64799999999997 58.87650000000001Q176.20999999999998 63.65400000000001 176.20999999999998 69.70200000000001Q176.20999999999998 75.68700000000001 173.64799999999997 80.45400000000001Q171.08599999999998 85.221 166.634 87.99300000000001Q162.182 90.76500000000001 156.55399999999997 90.76500000000001ZM134.0 89.92500000000001V29.193000000000005H145.046V59.32800000000001L143.177 69.135L144.94099999999997 79.02600000000001V89.92500000000001ZM154.664 80.60100000000001Q157.688 80.60100000000001 159.998 79.20450000000001Q162.308 77.808 163.63099999999997 75.33000000000001Q164.95399999999998 72.852 164.95399999999998 69.63900000000001Q164.95399999999998 66.42600000000002 163.63099999999997 63.948000000000015Q162.308 61.47000000000001 159.9875 60.07350000000001Q157.667 58.67700000000001 154.643 58.67700000000001Q151.619 58.67700000000001 149.27749999999997 60.07350000000001Q146.93599999999998 61.47000000000001 145.65499999999997 63.93750000000001Q144.374 66.405 144.374 69.63900000000001Q144.374 72.87300000000002 145.6655 75.35100000000001Q146.957 77.82900000000001 149.2985 79.215Q151.64 80.60100000000001 154.664 80.60100000000001ZM199.87699999999998 90.80700000000002Q194.54692805755394 90.80700000000002 190.37646402877698 88.51800000000001Q186.206 86.22900000000001 183.86449999999996 82.19619809069214Q181.52299999999997 78.16339618138426 181.52299999999997 72.89320175796031V49.35300000000001H192.569V72.62100000000001Q192.569 75.14424000000001 193.42737499999998 76.93422000000001Q194.28574999999998 78.72420000000001 195.94697115384614 79.68360000000001Q197.6081923076923 80.64300000000001 199.89763793103447 80.64300000000001Q203.34199999999998 80.64300000000001 205.253 78.54174Q207.164 76.44048000000001 207.164 72.62100000000001V49.35300000000001H218.20999999999998V72.894Q218.20999999999998 78.22800000000001 215.87899999999996 82.26000000000002Q213.54799999999997 86.29200000000002 209.41719424460427 88.54950000000002Q205.2863884892086 90.80700000000002 199.87699999999998 90.80700000000002ZM253.36399999999998 89.92500000000001V66.67800000000001Q253.36399999999998 63.04500000000001 251.09599999999998 60.76650000000001Q248.82799999999997 58.488000000000014 245.29442857142857 58.488000000000014Q242.88992857142856 58.488000000000014 241.03946428571427 59.51700000000001Q239.189 60.54600000000001 238.1495 62.404500000000006Q237.10999999999999 64.263 237.10999999999999 66.67800000000001L232.80499999999998 64.45200000000001Q232.80499999999998 59.72700000000001 234.83149999999998 56.14650000000001Q236.85799999999998 52.56600000000001 240.44244416243652 50.53950000000001Q244.02688832487308 48.51300000000001 248.62194416243653 48.51300000000001Q253.259 48.51300000000001 256.829 50.51850000000001Q260.399 52.52400000000001 262.4045 56.05200000000001Q264.40999999999997 59.58000000000001 264.40999999999997 64.221V89.92500000000001ZM226.064 89.92500000000001V29.193000000000005H237.10999999999999V89.92500000000001ZM289.4 90.76500000000001Q283.856 90.76500000000001 279.4355 87.99300000000001Q275.015 85.221 272.46349999999995 80.45400000000001Q269.912 75.68700000000001 269.912 69.70200000000001Q269.912 63.65400000000001 272.46349999999995 58.87650000000001Q275.015 54.09900000000001 279.4355 51.30600000000001Q283.856 48.51300000000001 289.4 48.51300000000001Q293.768 48.51300000000001 297.212 50.29800000000001Q300.65599999999995 52.083000000000006 302.7455 55.212Q304.835 58.34100000000001 304.98199999999997 62.33100000000001V76.947Q304.835 80.93700000000001 302.777 84.066Q300.719 87.19500000000001 297.2435 88.98000000000002Q293.768 90.76500000000001 289.4 90.76500000000001ZM291.45799999999997 80.60100000000001Q296.078 80.60100000000001 298.913 77.52450000000002Q301.748 74.44800000000001 301.748 69.63900000000001Q301.748 66.405 300.467 63.93750000000001Q299.186 61.47000000000001 296.876 60.07350000000001Q294.566 58.67700000000001 291.479 58.67700000000001Q288.455 58.67700000000001 286.145 60.07350000000001Q283.835 61.47000000000001 282.50149999999996 63.948000000000015Q281.16799999999995 66.42600000000002 281.16799999999995 69.63900000000001Q281.16799999999995 72.852 282.491 75.33000000000001Q283.81399999999996 77.808 286.1345 79.20450000000001Q288.455 80.60100000000001 291.45799999999997 80.60100000000001ZM301.181 89.92500000000001V79.02600000000001L302.945 69.135L301.181 59.32800000000001V49.35300000000001H312.12199999999996V89.92500000000001ZM326.948 89.92500000000001V32.51100000000001H337.99399999999997V89.92500000000001ZM317.498 59.013000000000005V49.35300000000001H347.444V59.013000000000005Z" fill="#F4F1EA"/></svg></span>
+    <span>© <span id="yr"></span> buhat · Made in Davao City · <a href="https://cafe.buhat.co">Café log in</a></span>
+  </div>
+</footer>
 
 <script>
-/* ------------------------------------------------------------------ config */
-const LOGO = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 363 120\" width=\"182\" height=\"60\" role=\"img\" aria-label=\"buhat\"><rect x=\"12\" y=\"12\" width=\"96\" height=\"96\" rx=\"23.0\" fill=\"#121314\"/><rect x=\"13.9\" y=\"13.9\" width=\"92.2\" height=\"92.2\" rx=\"21.1\" fill=\"none\" stroke=\"#3A3B3D\" stroke-width=\"1.2\"/><path d=\"M56.83919999999999 84.62879999999998Q53.327999999999996 84.62879999999998 50.5056 83.15879999999999Q47.6832 81.68879999999999 45.9948 79.14359999999999Q44.3064 76.59839999999998 44.172 73.40639999999999V61.88159999999999Q44.3064 58.6896 46.019999999999996 56.1864Q47.733599999999996 53.6832 50.556 52.2552Q53.3784 50.8272 56.83919999999999 50.8272Q61.3416 50.8272 64.9032 53.0616Q68.4648 55.29599999999999 70.5144 59.117999999999995Q72.564 62.94 72.564 67.77839999999999Q72.564 72.56639999999999 70.5144 76.38Q68.4648 80.19359999999999 64.9032 82.41119999999998Q61.3416 84.62879999999998 56.83919999999999 84.62879999999998ZM38.796 83.95679999999999V35.3712H47.6328V59.47919999999999L46.1376 67.3248L47.5488 75.23759999999999V83.95679999999999ZM55.3272 76.49759999999999Q57.746399999999994 76.49759999999999 59.59439999999999 75.38039999999998Q61.44239999999999 74.26319999999998 62.50079999999999 72.28079999999999Q63.55919999999999 70.29839999999999 63.55919999999999 67.728Q63.55919999999999 65.15759999999999 62.50079999999999 63.17519999999999Q61.44239999999999 61.19279999999999 59.586 60.075599999999994Q57.7296 58.9584 55.3104 58.9584Q52.8912 58.9584 51.018 60.075599999999994Q49.1448 61.19279999999999 48.12 63.16679999999999Q47.0952 65.14079999999998 47.0952 67.728Q47.0952 70.31519999999999 48.1284 72.29759999999999Q49.1616 74.27999999999999 51.034800000000004 75.38879999999999Q52.908 76.49759999999999 55.3272 76.49759999999999Z\" fill=\"#F4F1EA\"/><circle cx=\"82.6\" cy=\"38.9\" r=\"7.2\" fill=\"#B8955B\"/><path d=\"M156.55399999999997 90.76500000000001Q152.165 90.76500000000001 148.637 88.92750000000001Q145.10899999999998 87.09000000000002 142.99849999999998 83.9085Q140.88799999999998 80.727 140.72 76.73700000000001V62.33100000000001Q140.88799999999998 58.34100000000001 143.02999999999997 55.212Q145.172 52.083000000000006 148.7 50.29800000000001Q152.22799999999998 48.51300000000001 156.55399999999997 48.51300000000001Q162.182 48.51300000000001 166.634 51.30600000000001Q171.08599999999998 54.09900000000001 173.64799999999997 58.87650000000001Q176.20999999999998 63.65400000000001 176.20999999999998 69.70200000000001Q176.20999999999998 75.68700000000001 173.64799999999997 80.45400000000001Q171.08599999999998 85.221 166.634 87.99300000000001Q162.182 90.76500000000001 156.55399999999997 90.76500000000001ZM134.0 89.92500000000001V29.193000000000005H145.046V59.32800000000001L143.177 69.135L144.94099999999997 79.02600000000001V89.92500000000001ZM154.664 80.60100000000001Q157.688 80.60100000000001 159.998 79.20450000000001Q162.308 77.808 163.63099999999997 75.33000000000001Q164.95399999999998 72.852 164.95399999999998 69.63900000000001Q164.95399999999998 66.42600000000002 163.63099999999997 63.948000000000015Q162.308 61.47000000000001 159.9875 60.07350000000001Q157.667 58.67700000000001 154.643 58.67700000000001Q151.619 58.67700000000001 149.27749999999997 60.07350000000001Q146.93599999999998 61.47000000000001 145.65499999999997 63.93750000000001Q144.374 66.405 144.374 69.63900000000001Q144.374 72.87300000000002 145.6655 75.35100000000001Q146.957 77.82900000000001 149.2985 79.215Q151.64 80.60100000000001 154.664 80.60100000000001ZM199.87699999999998 90.80700000000002Q194.54692805755394 90.80700000000002 190.37646402877698 88.51800000000001Q186.206 86.22900000000001 183.86449999999996 82.19619809069214Q181.52299999999997 78.16339618138426 181.52299999999997 72.89320175796031V49.35300000000001H192.569V72.62100000000001Q192.569 75.14424000000001 193.42737499999998 76.93422000000001Q194.28574999999998 78.72420000000001 195.94697115384614 79.68360000000001Q197.6081923076923 80.64300000000001 199.89763793103447 80.64300000000001Q203.34199999999998 80.64300000000001 205.253 78.54174Q207.164 76.44048000000001 207.164 72.62100000000001V49.35300000000001H218.20999999999998V72.894Q218.20999999999998 78.22800000000001 215.87899999999996 82.26000000000002Q213.54799999999997 86.29200000000002 209.41719424460427 88.54950000000002Q205.2863884892086 90.80700000000002 199.87699999999998 90.80700000000002ZM253.36399999999998 89.92500000000001V66.67800000000001Q253.36399999999998 63.04500000000001 251.09599999999998 60.76650000000001Q248.82799999999997 58.488000000000014 245.29442857142857 58.488000000000014Q242.88992857142856 58.488000000000014 241.03946428571427 59.51700000000001Q239.189 60.54600000000001 238.1495 62.404500000000006Q237.10999999999999 64.263 237.10999999999999 66.67800000000001L232.80499999999998 64.45200000000001Q232.80499999999998 59.72700000000001 234.83149999999998 56.14650000000001Q236.85799999999998 52.56600000000001 240.44244416243652 50.53950000000001Q244.02688832487308 48.51300000000001 248.62194416243653 48.51300000000001Q253.259 48.51300000000001 256.829 50.51850000000001Q260.399 52.52400000000001 262.4045 56.05200000000001Q264.40999999999997 59.58000000000001 264.40999999999997 64.221V89.92500000000001ZM226.064 89.92500000000001V29.193000000000005H237.10999999999999V89.92500000000001ZM289.4 90.76500000000001Q283.856 90.76500000000001 279.4355 87.99300000000001Q275.015 85.221 272.46349999999995 80.45400000000001Q269.912 75.68700000000001 269.912 69.70200000000001Q269.912 63.65400000000001 272.46349999999995 58.87650000000001Q275.015 54.09900000000001 279.4355 51.30600000000001Q283.856 48.51300000000001 289.4 48.51300000000001Q293.768 48.51300000000001 297.212 50.29800000000001Q300.65599999999995 52.083000000000006 302.7455 55.212Q304.835 58.34100000000001 304.98199999999997 62.33100000000001V76.947Q304.835 80.93700000000001 302.777 84.066Q300.719 87.19500000000001 297.2435 88.98000000000002Q293.768 90.76500000000001 289.4 90.76500000000001ZM291.45799999999997 80.60100000000001Q296.078 80.60100000000001 298.913 77.52450000000002Q301.748 74.44800000000001 301.748 69.63900000000001Q301.748 66.405 300.467 63.93750000000001Q299.186 61.47000000000001 296.876 60.07350000000001Q294.566 58.67700000000001 291.479 58.67700000000001Q288.455 58.67700000000001 286.145 60.07350000000001Q283.835 61.47000000000001 282.50149999999996 63.948000000000015Q281.16799999999995 66.42600000000002 281.16799999999995 69.63900000000001Q281.16799999999995 72.852 282.491 75.33000000000001Q283.81399999999996 77.808 286.1345 79.20450000000001Q288.455 80.60100000000001 291.45799999999997 80.60100000000001ZM301.181 89.92500000000001V79.02600000000001L302.945 69.135L301.181 59.32800000000001V49.35300000000001H312.12199999999996V89.92500000000001ZM326.948 89.92500000000001V32.51100000000001H337.99399999999997V89.92500000000001ZM317.498 59.013000000000005V49.35300000000001H347.444V59.013000000000005Z\" fill=\"#F4F1EA\"/></svg>";
-const SUPABASE_URL  = "https://vnztvasfojliizflrnix.supabase.co";
-const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuenR2YXNmb2psaWl6Zmxybml4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNDQ4NjAsImV4cCI6MjA5NjkyMDg2MH0.ec2qhBYO58i9Zcmuk9tmZ4faf8epc0UebP8GKnENuGM";
-const CAFE_URL = "https://cafe.buhat.co";
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-
-/* ------------------------------------------------------------------ helpers */
-const $ = (s, r=document) => r.querySelector(s);
-function el(tag, attrs={}, ...kids){
-  const n=document.createElement(tag);
-  for(const [k,v] of Object.entries(attrs||{})){
-    if(v==null || v===false) continue;
-    if(k==="class") n.className=v; else if(k==="style") n.style.cssText=v;
-    else if(k.startsWith("on")) n.addEventListener(k.slice(2), v);
-    else if(k==="html") n.innerHTML=v; else n.setAttribute(k, v===true?"":v);
-  }
-  for(const c of kids.flat()){ if(c==null||c===false) continue; n.append(c.nodeType?c:document.createTextNode(String(c))); }
-  return n;
-}
-async function rpc(name, args){ const {data,error}=await sb.rpc(name, args||{}); if(error) throw new Error(error.message); return data; }
-async function act(name, args, okMsg){
-  try{ const r=await rpc(name,args); if(r && r.ok===false){ toast(r.error||"Couldn't do that","bad"); return null; } if(okMsg) toast(okMsg); await load(); return r||{}; }
-  catch(e){ toast(e.message,"bad"); return null; }
-}
-let toastT; function toast(msg, kind){ document.querySelectorAll(".toast").forEach(t=>t.remove()); const t=el("div",{class:"toast"+(kind?" "+kind:""),role:"status"},msg); document.body.append(t); clearTimeout(toastT); toastT=setTimeout(()=>t.remove(),3200); }
-const peso = n => "₱" + Number(n||0).toLocaleString("en-PH",{minimumFractionDigits:2,maximumFractionDigits:2});
-const peso0 = n => "₱" + Number(n||0).toLocaleString("en-PH",{maximumFractionDigits:0});
-const TZ="Asia/Manila";
-const fmtDate = d => d ? new Date(String(d).length===10 ? d+"T00:00:00+08:00" : d).toLocaleDateString("en-PH",{timeZone:TZ,month:"short",day:"numeric",year:"numeric"}) : "—";
-const fmtDT = d => d ? new Date(d).toLocaleString("en-PH",{timeZone:TZ,month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}) : "—";
-function ago(d){ if(!d) return "never"; const s=(Date.now()-new Date(d))/1000; if(s<90) return "just now"; if(s<3600) return Math.round(s/60)+" min ago"; if(s<86400) return Math.round(s/3600)+" h ago"; const dd=Math.round(s/86400); return dd===1?"yesterday":dd+" days ago"; }
-const todayISO = () => new Date().toLocaleDateString("en-CA",{timeZone:TZ});
-function daysUntil(iso){ if(!iso) return null; return Math.round((new Date(iso+"T00:00:00+08:00") - new Date(todayISO()+"T00:00:00+08:00"))/86400000); }
-async function copy(text){ try{ await navigator.clipboard.writeText(text); toast("Copied"); }catch(_){ prompt("Copy this:", text); } }
-function openModal(title, body, footer){
-  const scrim=el("div",{class:"scrim modal-scrim"}), m=el("div",{class:"modal",role:"dialog","aria-modal":"true","aria-label":title});
-  const close=()=>{ scrim.remove(); m.remove(); document.removeEventListener("keydown",esc); };
-  const esc=e=>{ if(e.key==="Escape") close(); };
-  scrim.onclick=close; document.addEventListener("keydown",esc);
-  m.append(el("h3",{},title), body, el("div",{class:"foot"}, ...(footer?footer(close):[el("button",{class:"btn",onclick:close},"Close")])));
-  document.body.append(scrim, m); const f=m.querySelector("input,select,textarea"); if(f) f.focus();
-  return close;
-}
-function confirmBox(title, text, okLabel, onOk, danger){
-  openModal(title, el("p",{class:"muted",style:"margin:0"},text), close=>[
-    el("button",{class:"btn",onclick:close},"Cancel"),
-    el("button",{class:"btn "+(danger?"btn-danger":"btn-brass"),onclick:async e=>{ e.target.disabled=true; await onOk(); close(); }},okLabel)]);
-}
-
-/* ------------------------------------------------------------------ state */
-const S = { data:null, tab:"overview", openCafe:null };
-const TABS=[["overview","Overview"],["cafes","Cafés"],["invites","Invite codes"],["billing","Billing"],["log","Activity"]];
-
-/* ------------------------------------------------------------------ auth */
-function show(id){ ["loginView","loadingView","appView"].forEach(v=>$("#"+v).classList.toggle("hide", v!==id)); }
-async function boot(){
-  document.querySelectorAll("[data-logo]").forEach(x=>x.innerHTML=LOGO);
-  const {data:{session}} = await sb.auth.getSession();
-  if(!session) return show("loginView");
-  await enter();
-}
-async function enter(){
-  show("loadingView");
-  let me=null; try{ me=await rpc("rpc_buhat_me"); }catch(e){}
-  if(!me || !me.ok){ show("loginView"); return; }
-  if(!me.is_admin){
-    await sb.auth.signOut({scope:"local"});
-    show("loginView"); $("#lErr").textContent = `${me.email} isn't a buhat admin.`; return;
-  }
-  $("#who").textContent = me.email;
-  show("appView");
-  try{ const t=sessionStorage.getItem("buhat_admin_tab"); if(t && TABS.some(x=>x[0]===t)) S.tab=t; }catch(_){}
-  await load();
-}
-$("#loginForm").addEventListener("submit", async e=>{
-  e.preventDefault(); const b=$("#lBtn"); $("#lErr").textContent=""; b.disabled=true; b.textContent="Logging in…";
-  const {error}=await sb.auth.signInWithPassword({email:$("#lEmail").value.trim(), password:$("#lPass").value});
-  b.disabled=false; b.textContent="Log in";
-  if(error){ $("#lErr").textContent = /invalid/i.test(error.message) ? "That email and password don't match." : error.message; return; }
-  $("#lPass").value=""; await enter();
+const WA = "639517516681";
+document.getElementById("yr").textContent = new Date().getFullYear();
+const waLink = t => "https://wa.me/" + WA + "?text=" + encodeURIComponent(t);
+document.getElementById("waDirect").href = waLink("Hi buhat! I'd like to know more about your systems.");
+document.getElementById("wlForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const v = id => document.getElementById(id).value.trim();
+  const name = v("wlName"), biz = v("wlBiz");
+  if(!name || !biz){ (name ? document.getElementById("wlBiz") : document.getElementById("wlName")).focus(); return; }
+  const msg = `Hi buhat! I'd like to join the waitlist.\n\nName: ${name}\nBusiness: ${biz}\nType: ${v("wlType")}` + (v("wlCity") ? `\nCity: ${v("wlCity")}` : "");
+  window.open(waLink(msg), "_blank", "noopener");
 });
-async function signOut(){ await sb.auth.signOut({scope:"local"}); S.data=null; show("loginView"); }
-$("#signOut").onclick=signOut; $("#mSignOut").onclick=signOut;
-
-/* ------------------------------------------------------------------ data */
-async function load(){
-  try{ S.data = await rpc("admin_overview"); }
-  catch(e){
-    if(/not a buhat admin/i.test(e.message)) return signOut();
-    $("#main").innerHTML=""; $("#main").append(el("div",{class:"card"}, el("h3",{},"Couldn't load"), el("p",{class:"muted"},e.message),
-      el("p",{class:"note"},"If this says admin_overview doesn't exist, run migration 17 in Supabase first."), el("button",{class:"btn",onclick:load},"Try again")));
-    return;
-  }
-  render();
-  if(S.openCafe){ const c=cafes().find(x=>x.id===S.openCafe); if(c) openCafe(c, true); }
-}
-const cafes = () => (S.data && S.data.cafes) || [];
-const paying = c => !c.is_mugna && c.billing && c.billing.plan==="monthly";
-function dueState(c){
-  if(!paying(c)) return null;
-  const d=daysUntil(c.billing.next_due);
-  if(d==null) return {cls:"p-dim",txt:"No due date",d:null};
-  if(d<0) return {cls:"p-bad",txt:`Overdue ${-d}d`,d};
-  if(d<=7) return {cls:"p-warn",txt:d===0?"Due today":`Due in ${d}d`,d};
-  return {cls:"p-good",txt:`Due ${fmtDate(c.billing.next_due)}`,d};
-}
-const lastActive = c => [c.last_sale, c.last_seen].filter(Boolean).sort().pop() || null;
-function statusPill(c){
-  if(c.is_mugna) return el("span",{class:"pill p-info"},"Yours");
-  return el("span",{class:"pill "+(c.status==="active"?"p-good":c.status==="paused"?"p-warn":"p-dim")}, c.status[0].toUpperCase()+c.status.slice(1));
-}
-
-/* ------------------------------------------------------------------ render */
-function render(){
-  const overdue=cafes().filter(c=>c.status==="active" && (dueState(c)||{}).d<0).length;
-  const tabs=$("#tabs"); tabs.innerHTML="";
-  TABS.forEach(([id,label])=>tabs.append(el("button",{type:"button",role:"tab","aria-selected":String(S.tab===id),class:S.tab===id?"on":"",
-    onclick:()=>{ S.tab=id; try{ sessionStorage.setItem("buhat_admin_tab",id); }catch(_){} render(); window.scrollTo(0,0); load(); }},
-    label, id==="billing" && overdue ? el("span",{class:"count"},overdue) : null)));
-  const main=$("#main"); main.innerHTML="";
-  ({overview:renderOverview, cafes:renderCafes, invites:renderInvites, billing:renderBilling, log:renderLog})[S.tab](main);
-}
-function pageTop(main, title, right){
-  main.append(el("div",{class:"top"}, el("div",{}, el("div",{class:"crumb"},"buhat Café"), el("h1",{},title)), right||null));
-}
-function signupToggle(){
-  const open=!!S.data.signups_open;
-  const set=v=>{ if(v===open) return;
-    if(v) confirmBox("Open sign-ups to everyone?","Anyone with the link can create a café without an invite code. You can switch back any time.","Open sign-ups",()=>act("admin_set_signups_open",{p_open:true},"Sign-ups are open"));
-    else act("admin_set_signups_open",{p_open:false},"Back to invite-only"); };
-  return el("div",{style:"display:flex;align-items:center;gap:10px;flex-wrap:wrap"}, el("span",{class:"dim",style:"font-size:13.5px"},"New cafés:"),
-    el("div",{class:"seg",role:"group","aria-label":"Who can sign up"},
-      el("button",{type:"button",class:open?"":"on","aria-pressed":String(!open),onclick:()=>set(false)},"Invite only"),
-      el("button",{type:"button",class:open?"on":"","aria-pressed":String(open),onclick:()=>set(true)},"Open to all")));
-}
-
-/* ---------- Overview ---------- */
-function renderOverview(main){
-  pageTop(main,"Overview", signupToggle());
-  const cs=cafes(), clients=cs.filter(c=>!c.is_mugna);
-  const active=clients.filter(c=>c.status==="active"), paused=clients.filter(c=>c.status==="paused");
-  const mrr=active.filter(paying).reduce((a,c)=>a+Number(c.billing.monthly_fee||0),0);
-  const over=active.filter(c=>(dueState(c)||{}).d<0);
-  const openInv=(S.data.invites||[]).filter(i=>i.active && !i.expired && i.uses<i.max_uses);
-  const k=(l,v,s)=>el("div",{class:"card kpi"},el("div",{class:"l"},l),el("div",{class:"v"},v),el("div",{class:"s"},s));
-  main.append(el("div",{class:"kpis"},
-    k("Client cafés", String(active.length), paused.length?`${paused.length} paused`:"all active"),
-    k("Monthly recurring", peso0(mrr), `${active.filter(paying).length} on a monthly plan`),
-    k("Overdue", String(over.length), over.length?peso0(over.reduce((a,c)=>a+Number(c.billing.monthly_fee||0),0))+" waiting":"nothing overdue"),
-    k("Open invite codes", String(openInv.length), "not used yet")));
-
-  const due=active.filter(paying).filter(c=>{ const d=dueState(c); return d && d.d!=null && d.d<=7; }).sort((a,b)=>dueState(a).d-dueState(b).d);
-  const dueCard=el("div",{class:"card"}, el("h3",{},"Payments due this week"));
-  if(!due.length) dueCard.append(el("div",{class:"empty"},"Nothing due in the next 7 days."));
-  due.forEach(c=>{ const d=dueState(c); dueCard.append(el("div",{class:"list-row"},
-    el("div",{class:"name"}, el("b",{},c.display_name), el("small",{}, peso(c.billing.monthly_fee)+" / month")),
-    el("div",{style:"display:flex;gap:8px;align-items:center"}, el("span",{class:"pill "+d.cls},d.txt),
-      el("button",{class:"btn btn-sm",onclick:()=>paymentModal(c)},"Record payment")))); });
-
-  const recent=[...cs].sort((a,b)=>String(lastActive(b)||"").localeCompare(String(lastActive(a)||""))).slice(0,6);
-  const actCard=el("div",{class:"card"}, el("h3",{},"Recent activity"));
-  if(!recent.length) actCard.append(el("div",{class:"empty"},"No cafés yet."));
-  recent.forEach(c=>actCard.append(el("div",{class:"list-row",style:"cursor:pointer",onclick:()=>openCafe(c)},
-    el("div",{class:"name"}, el("b",{},c.display_name), el("small",{}, `${c.sales_30d} sales · ${peso0(c.revenue_30d)} in 30 days`)),
-    el("span",{class:"dim",style:"font-size:13.5px"}, ago(lastActive(c))))));
-  main.append(el("div",{class:"two"}, dueCard, actCard));
-
-  const quiet=active.filter(c=>{ const l=lastActive(c); return !l || (Date.now()-new Date(l))>7*86400000; });
-  if(quiet.length){
-    const q=el("div",{class:"card"}, el("h3",{},"Quiet cafés"), el("p",{class:"muted",style:"margin:-4px 0 8px;font-size:14px"},"No sales or tablet activity for a week. Worth a check-in."));
-    quiet.forEach(c=>q.append(el("div",{class:"list-row",style:"cursor:pointer",onclick:()=>openCafe(c)}, el("b",{},c.display_name), el("span",{class:"dim"},"last active "+ago(lastActive(c))))));
-    main.append(q);
-  }
-}
-
-/* ---------- Cafés ---------- */
-function renderCafes(main){
-  pageTop(main,"Cafés", el("button",{class:"btn btn-brass",onclick:()=>{ S.tab="invites"; render(); setTimeout(()=>{ const i=$("#invLabel"); if(i) i.focus(); },50); }},"＋ Invite a café"));
-  const card=el("div",{class:"card"}), cs=cafes();
-  if(!cs.length){ card.append(el("div",{class:"empty"},"No cafés yet. Create an invite code to onboard your first one.")); main.append(card); return; }
-  const tb=el("tbody");
-  [...cs].sort((a,b)=>(a.is_mugna?-1:b.is_mugna?1:0) || a.display_name.localeCompare(b.display_name)).forEach(c=>{
-    const d=dueState(c);
-    tb.append(el("tr",{class:"click",tabindex:"0",onclick:()=>openCafe(c),onkeydown:e=>{ if(e.key==="Enter") openCafe(c); }},
-      el("td",{class:"name"}, el("b",{},c.display_name), el("small",{}, (c.owners[0]||{}).email || "no owner login")),
-      el("td",{}, statusPill(c)),
-      el("td",{class:"hide-m"}, `${c.staff} staff · ${c.devices} tablet${c.devices===1?"":"s"}`),
-      el("td",{class:"hide-m"}, `${c.sales_30d} sales`, el("div",{class:"dim",style:"font-size:12.5px"}, peso0(c.revenue_30d)+" · 30 days")),
-      el("td",{class:"hide-m dim"}, ago(lastActive(c))),
-      el("td",{}, c.is_mugna ? el("span",{class:"dim"},"—") : !c.billing ? el("span",{class:"pill p-dim"},"Not set") :
-        c.billing.plan!=="monthly" ? el("span",{class:"pill p-info"}, c.billing.plan==="free"?"Free":"Trial") : el("span",{class:"pill "+d.cls}, d.txt))));
-  });
-  card.append(el("div",{class:"tw"}, el("table",{}, el("thead",{}, el("tr",{}, el("th",{},"Café"), el("th",{},"Status"), el("th",{class:"hide-m"},"Team"),
-    el("th",{class:"hide-m"},"Sales"), el("th",{class:"hide-m"},"Last active"), el("th",{},"Billing"))), tb)));
-  main.append(card);
-}
-
-function openCafe(c, keepScroll){
-  S.openCafe=c.id;
-  document.querySelectorAll(".drawer,.scrim:not(.modal-scrim)").forEach(x=>x.remove());
-  const scrim=el("div",{class:"scrim"}), dr=el("div",{class:"drawer",role:"dialog","aria-modal":"true","aria-label":c.display_name});
-  const close=()=>{ S.openCafe=null; scrim.remove(); dr.remove(); document.removeEventListener("keydown",esc); };
-  const esc=e=>{ if(e.key==="Escape" && !document.querySelector(".modal")) close(); };
-  scrim.onclick=close; document.addEventListener("keydown",esc);
-  dr.append(el("div",{class:"dh"},
-    el("div",{}, el("h2",{},c.display_name), el("div",{class:"dim",style:"font-size:13.5px;margin-top:4px"},
-      `Joined ${fmtDate(c.created_at)}` + (c.invite?` · invite ${c.invite.code}${c.invite.label?" ("+c.invite.label+")":""}`:"")), el("div",{style:"margin-top:8px"},statusPill(c))),
-    el("button",{class:"btn btn-sm",onclick:close,"aria-label":"Close"},"✕")));
-  const body=el("div",{},el("div",{class:"empty"},el("span",{class:"spin"})));
-  dr.append(body); document.body.append(scrim, dr);
-  rpc("admin_cafe_detail",{p_cafe:c.id}).then(det=>drawCafe(body,c,det)).catch(e=>{ body.innerHTML=""; body.append(el("p",{class:"muted"},e.message)); });
-}
-
-function drawCafe(body, c, det){
-  body.innerHTML="";
-  // status
-  const st=el("div",{class:"card"}, el("h3",{},"Account"));
-  st.append(el("div",{class:"grid3",style:"margin-bottom:12px"},
-    el("div",{}, el("div",{class:"dim",style:"font-size:12.5px"},"Last 30 days"), el("b",{}, `${c.sales_30d} sales · ${peso0(c.revenue_30d)}`)),
-    el("div",{}, el("div",{class:"dim",style:"font-size:12.5px"},"Last sale"), el("b",{}, c.last_sale?fmtDT(c.last_sale):"none yet")),
-    el("div",{}, el("div",{class:"dim",style:"font-size:12.5px"},"Owner PIN"), el("b",{}, c.owner_pin_set?"Set":"Not set"))));
-  const acts=el("div",{class:"row-act",style:"justify-content:flex-start"});
-  acts.append(el("button",{class:"btn btn-sm",onclick:()=>{
-    const i=el("input",{class:"in",value:c.name});
-    openModal("Rename café", el("label",{class:"f"},el("span",{},"Café name (as buhat knows it)"),i), close=>[el("button",{class:"btn",onclick:close},"Cancel"),
-      el("button",{class:"btn btn-brass",onclick:async()=>{ if(await act("admin_cafe_rename",{p_cafe:c.id,p_name:i.value},"Renamed")) close(); }},"Save")]);
-  }},"Rename"));
-  if(!c.is_mugna){
-    if(c.status==="active") acts.append(el("button",{class:"btn btn-sm btn-danger",onclick:()=>confirmBox(`Pause ${c.display_name}?`,
-      "Staff and the owner are signed out and can't use the app until you reactivate it. Their data stays safe.","Pause café",
-      ()=>act("admin_cafe_set_status",{p_cafe:c.id,p_status:"paused"},"Café paused"),true)},"Pause café"));
-    else acts.append(el("button",{class:"btn btn-sm btn-brass",onclick:()=>act("admin_cafe_set_status",{p_cafe:c.id,p_status:"active"},"Café is active again")},"Reactivate"));
-  }
-  acts.append(el("a",{class:"btn btn-sm",href:CAFE_URL,target:"_blank",rel:"noopener"},"Open app ↗"));
-  st.append(acts);
-  if(c.status!=="active" && !c.is_mugna) st.append(el("p",{class:"note"},"Paused: the café sees a “paused, message buhat” screen."));
-  body.append(st);
-
-  // billing
-  if(!c.is_mugna){
-    const b=c.billing||{plan:"monthly",monthly_fee:0,setup_fee:0};
-    const f={ plan:el("select",{class:"in"}, ...[["monthly","Monthly"],["trial","Free trial"],["free","Free"]].map(([v,l])=>el("option",{value:v,selected:b.plan===v},l))),
-      monthly_fee:el("input",{class:"in",type:"number",min:"0",step:"1",value:b.monthly_fee||""}),
-      setup_fee:el("input",{class:"in",type:"number",min:"0",step:"1",value:b.setup_fee||""}),
-      next_due:el("input",{class:"in",type:"date",value:b.next_due||""}),
-      contact_name:el("input",{class:"in",value:b.contact_name||"",placeholder:"Owner's name"}),
-      contact_phone:el("input",{class:"in",value:b.contact_phone||"",placeholder:"09xx…",inputmode:"tel"}),
-      notes:el("textarea",{class:"in",rows:"2",placeholder:"Anything to remember"},b.notes||"") };
-    const d=dueState(c);
-    const bc=el("div",{class:"card"}, el("div",{style:"display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px"},
-        el("h3",{style:"margin:0"},"Billing"), d?el("span",{class:"pill "+d.cls},d.txt):null),
-      el("div",{class:"grid3"}, el("label",{class:"f"},el("span",{},"Plan"),f.plan), el("label",{class:"f"},el("span",{},"Monthly fee (₱)"),f.monthly_fee), el("label",{class:"f"},el("span",{},"Next due"),f.next_due)),
-      el("div",{class:"grid3",style:"margin-top:12px"}, el("label",{class:"f"},el("span",{},"Setup fee (₱)"),f.setup_fee), el("label",{class:"f"},el("span",{},"Contact"),f.contact_name), el("label",{class:"f"},el("span",{},"Phone / WhatsApp"),f.contact_phone)),
-      el("label",{class:"f",style:"margin-top:12px"},el("span",{},"Notes"),f.notes),
-      el("div",{class:"note"}, b.setup_fee>0 ? (b.setup_paid_on?`Setup fee paid ${fmtDate(b.setup_paid_on)}.`:"Setup fee not paid yet.") : ""),
-      el("div",{class:"row-act",style:"margin-top:12px"},
-        f.contact_phone.value ? el("a",{class:"btn btn-sm",target:"_blank",rel:"noopener",href:waHref(f.contact_phone.value, reminderText(c))},"WhatsApp reminder") : null,
-        el("button",{class:"btn btn-sm",onclick:()=>paymentModal(c)},"Record payment"),
-        el("button",{class:"btn btn-sm btn-brass",onclick:async ev=>{ ev.target.disabled=true;
-          const p={}; Object.entries(f).forEach(([k,i])=>p[k]=i.value);
-          await act("admin_billing_save",{p_cafe:c.id,p},"Billing saved"); ev.target.disabled=false; }},"Save billing")));
-    body.append(bc);
-
-    const pc=el("div",{class:"card"}, el("h3",{},"Payments"));
-    if(!det.payments.length) pc.append(el("div",{class:"empty"},"No payments recorded yet."));
-    det.payments.forEach(p=>pc.append(el("div",{class:"list-row"},
-      el("div",{class:"name"}, el("b",{}, peso(p.amount)+" · "+(p.kind==="monthly"?`${p.months} month${p.months>1?"s":""}`:p.kind==="setup"?"setup fee":"other")),
-        el("small",{}, fmtDate(p.paid_on) + (p.method?" · "+p.method:"") + (p.note?" · "+p.note:""))),
-      el("button",{class:"btn btn-sm btn-danger",onclick:()=>confirmBox("Undo this payment?",
-        p.kind==="monthly"?"The next due date moves back by "+p.months+" month"+(p.months>1?"s":"")+".":"It's removed from the list.","Undo payment",
-        ()=>act("admin_payment_delete",{p_id:p.id},"Payment removed"),true)},"Undo"))));
-    body.append(pc);
-  }
-
-  // support
-  const sc=el("div",{class:"card"}, el("h3",{},"Support"));
-  sc.append(el("div",{class:"list-row"}, el("div",{class:"name"}, el("b",{},"Owner PIN"), el("small",{}, c.owner_pin_set?"Set. Reset it if the owner forgot it.":"Not set yet.")),
-    el("button",{class:"btn btn-sm",onclick:()=>pinModal(c)}, c.owner_pin_set?"Reset owner PIN":"Set owner PIN")));
-  sc.append(el("div",{class:"sec"}, el("h3",{},"Owner logins")));
-  c.owners.forEach(o=>sc.append(el("div",{class:"list-row"}, el("span",{},o.email||o.user_id),
-    c.owners.length>1 ? el("button",{class:"btn btn-sm btn-danger",onclick:()=>confirmBox("Remove this owner login?",`${o.email} won't be able to log in to ${c.display_name} with email any more.`,"Remove",
-      ()=>act("admin_member_remove",{p_cafe:c.id,p_user:o.user_id},"Owner login removed"),true)},"Remove") : el("span",{class:"dim",style:"font-size:13px"},"only owner"))));
-  sc.append(el("button",{class:"btn btn-sm",style:"margin-top:10px",onclick:()=>{
-    const i=el("input",{class:"in",type:"email",placeholder:"partner@example.com"});
-    openModal("Link another owner email", el("div",{}, el("label",{class:"f"},el("span",{},"Email"),i),
-      el("p",{class:"note"},"They need a buhat login first: cafe.buhat.co → Create account (they can stop at the café step).")),
-      close=>[el("button",{class:"btn",onclick:close},"Cancel"), el("button",{class:"btn btn-brass",onclick:async()=>{ if(await act("admin_member_add",{p_cafe:c.id,p_email:i.value},"Owner linked")) close(); }},"Link owner")]);
-  }},"＋ Link owner email"));
-  sc.append(el("div",{class:"sec"}, el("h3",{},"Tablets & devices")));
-  const live=det.devices.filter(d=>!d.revoked_at);
-  if(!live.length) sc.append(el("div",{class:"empty",style:"text-align:left"},"No linked devices."));
-  live.forEach(d=>sc.append(el("div",{class:"list-row"},
-    el("div",{class:"name"}, el("b",{},d.name||"Device"), el("small",{}, `Linked ${fmtDate(d.created_at)} · last used ${ago(d.last_seen)}`)),
-    el("button",{class:"btn btn-sm btn-danger",onclick:()=>confirmBox(`Unlink “${d.name||"Device"}”?`,"It stops opening to the staff list straight away. Use this for a lost or replaced tablet.","Unlink",
-      ()=>act("admin_device_revoke",{p_device:d.id},"Device unlinked"),true)},"Unlink"))));
-  const gone=det.devices.length-live.length; if(gone) sc.append(el("p",{class:"note"},`${gone} unlinked device${gone>1?"s":""} not shown.`));
-  sc.append(el("div",{class:"sec"}, el("h3",{},"Staff")));
-  if(!det.staff.length) sc.append(el("div",{class:"empty",style:"text-align:left"},"No staff added yet."));
-  det.staff.forEach(s=>sc.append(el("div",{class:"list-row"}, el("span",{},s.name, el("span",{class:"dim"}," · "+(s.role_title||"Staff"))),
-    el("span",{class:"pill "+(s.pin_set?"p-good":"p-warn")}, s.pin_set?"PIN set":"No PIN"))));
-  body.append(sc);
-
-  if(det.log.length){
-    const lc=el("div",{class:"card"}, el("h3",{},"Admin history"));
-    det.log.forEach(l=>lc.append(el("div",{class:"list-row"}, el("span",{},logText(l)), el("span",{class:"dim",style:"font-size:13px"},fmtDT(l.at)))));
-    body.append(lc);
-  }
-}
-
-function pinModal(c){
-  const a=el("input",{class:"in",type:"password",inputmode:"numeric",maxlength:"4",autocomplete:"new-password",placeholder:"4 digits"});
-  const b=el("input",{class:"in",type:"password",inputmode:"numeric",maxlength:"4",autocomplete:"new-password",placeholder:"Repeat"});
-  openModal(`Owner PIN for ${c.display_name}`, el("div",{},
-    el("div",{class:"grid2"}, el("label",{class:"f"},el("span",{},"New PIN"),a), el("label",{class:"f"},el("span",{},"Repeat"),b)),
-    el("p",{class:"note"},"Tell the owner the new PIN. They can change it in My Account. Owner PIN sign-ins on their tablets end now.")),
-    close=>[el("button",{class:"btn",onclick:close},"Cancel"), el("button",{class:"btn btn-brass",onclick:async()=>{
-      if(!/^\d{4}$/.test(a.value)) return toast("The PIN must be 4 digits","bad");
-      if(a.value!==b.value) return toast("The PINs don't match","bad");
-      if(await act("admin_set_owner_pin",{p_cafe:c.id,p_pin:a.value},"Owner PIN saved")) close(); }},"Save PIN")]);
-}
-
-function paymentModal(c){
-  const b=c.billing||{};
-  const kind=el("select",{class:"in"}, el("option",{value:"monthly"},"Monthly fee"), el("option",{value:"setup"},"Setup fee"), el("option",{value:"other"},"Other"));
-  const months=el("input",{class:"in",type:"number",min:"1",max:"24",value:"1"});
-  const amount=el("input",{class:"in",type:"number",min:"0",step:"1",value:b.monthly_fee||""});
-  const paid=el("input",{class:"in",type:"date",value:todayISO()});
-  const method=el("select",{class:"in"}, ...["GCash","Bank transfer","Cash","Maya","Other"].map(m=>el("option",{},m)));
-  const note=el("input",{class:"in",placeholder:"Reference no. or note (optional)"});
-  const mWrap=el("label",{class:"f"},el("span",{},"Months covered"),months);
-  const sync=()=>{ mWrap.classList.toggle("hide",kind.value!=="monthly");
-    if(kind.value==="monthly") amount.value=Number(b.monthly_fee||0)*Number(months.value||1)||amount.value;
-    if(kind.value==="setup") amount.value=b.setup_fee||amount.value; };
-  kind.onchange=sync; months.oninput=sync;
-  const preview=el("p",{class:"note"});
-  const pv=()=>{ if(kind.value!=="monthly"){ preview.textContent=""; return; }
-    const base=b.next_due||paid.value; if(!base){ preview.textContent=""; return; }
-    const d=new Date(base+"T00:00:00+08:00"); d.setMonth(d.getMonth()+Number(months.value||1));
-    preview.textContent="Next due date becomes "+d.toLocaleDateString("en-PH",{timeZone:TZ,month:"short",day:"numeric",year:"numeric"})+"."; };
-  [kind,months,paid].forEach(i=>i.addEventListener("input",pv)); kind.addEventListener("change",pv); pv();
-  openModal(`Payment from ${c.display_name}`, el("div",{style:"display:grid;gap:12px"},
-    el("div",{class:"grid2"}, el("label",{class:"f"},el("span",{},"For"),kind), mWrap),
-    el("div",{class:"grid2"}, el("label",{class:"f"},el("span",{},"Amount (₱)"),amount), el("label",{class:"f"},el("span",{},"Paid on"),paid)),
-    el("div",{class:"grid2"}, el("label",{class:"f"},el("span",{},"Paid via"),method), el("label",{class:"f"},el("span",{},"Note"),note)), preview),
-    close=>[el("button",{class:"btn",onclick:close},"Cancel"), el("button",{class:"btn btn-brass",onclick:async e=>{
-      if(amount.value==="" || Number(amount.value)<0) return toast("Enter the amount","bad");
-      e.target.disabled=true;
-      const r=await act("admin_payment_add",{p_cafe:c.id,p_kind:kind.value,p_amount:Number(amount.value),p_months:Number(months.value||1),
-        p_paid_on:paid.value||null,p_method:method.value,p_note:note.value||null},"Payment recorded");
-      if(r) close(); else e.target.disabled=false; }},"Record payment")]);
-}
-function waHref(phone, text){
-  let p=String(phone||"").replace(/\D/g,""); if(p.startsWith("0")) p="63"+p.slice(1);
-  return "https://wa.me/"+p+"?text="+encodeURIComponent(text);
-}
-function reminderText(c){
-  const b=c.billing||{}; const d=daysUntil(b.next_due);
-  const who=b.contact_name?b.contact_name.split(" ")[0]:"there";
-  return `Hi ${who}! Friendly reminder from buhat: your ${c.display_name} subscription of ${peso(b.monthly_fee)} ` +
-    (d==null?"is due.":d<0?`was due on ${fmtDate(b.next_due)}.`:d===0?"is due today.":`is due on ${fmtDate(b.next_due)}.`) + " Thank you! 🙏";
-}
-
-/* ---------- Invites ---------- */
-let lastCode=null;
-function renderInvites(main){
-  pageTop(main,"Invite codes", signupToggle());
-  const label=el("input",{class:"in",id:"invLabel",placeholder:"Who is it for? e.g. Kanto Coffee"});
-  const uses=el("input",{class:"in",type:"number",min:"1",max:"100",value:"1"});
-  const days=el("select",{class:"in"}, ...[["7","7 days"],["30","30 days"],["90","90 days"],["0","Never"]].map(([v,l])=>el("option",{value:v,selected:v==="30"},l)));
-  const out=el("div");
-  const mk=el("div",{class:"card"}, el("h3",{},"New invite code"),
-    el("div",{style:"display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;align-items:end",class:"inv-form"},
-      el("label",{class:"f"},el("span",{},"Label"),label), el("label",{class:"f"},el("span",{},"Uses"),uses), el("label",{class:"f"},el("span",{},"Expires after"),days),
-      el("button",{class:"btn btn-brass",style:"min-height:42px",onclick:async e=>{
-        e.target.disabled=true;
-        try{ const r=await rpc("admin_invite_create",{p_label:label.value||null,p_max_uses:Number(uses.value||1),p_days:Number(days.value)});
-          lastCode={code:r.code,label:label.value}; label.value=""; toast("Code created"); await load(); }
-        catch(err){ toast(err.message,"bad"); }
-        e.target.disabled=false; }},"Create code")), out);
-  if(window.matchMedia("(max-width:760px)").matches) mk.querySelector(".inv-form").style.gridTemplateColumns="1fr";
-  if(lastCode) out.append(newCodeBox(lastCode.code, lastCode.label));
-  main.append(mk);
-
-  const list=el("div",{class:"card"}, el("h3",{},"All codes"));
-  const inv=S.data.invites||[];
-  if(!inv.length) list.append(el("div",{class:"empty"},"No codes yet."));
-  else{
-    const tb=el("tbody");
-    inv.forEach(i=>{
-      const st = !i.active ? ["p-dim","Disabled"] : i.uses>=i.max_uses ? ["p-info","Used"] : i.expired ? ["p-dim","Expired"] : ["p-good","Open"];
-      tb.append(el("tr",{},
-        el("td",{}, el("span",{class:"code"},i.code)),
-        el("td",{class:"name"}, el("b",{},i.label||"—"), el("small",{}, i.used_by.length ? "Used by "+i.used_by.map(u=>u.cafe||u.email).join(", ") : "Created "+fmtDate(i.created_at))),
-        el("td",{class:"hide-m"}, `${i.uses} / ${i.max_uses}`),
-        el("td",{class:"hide-m dim"}, i.expires_at?fmtDate(i.expires_at):"never"),
-        el("td",{}, el("span",{class:"pill "+st[0]},st[1])),
-        el("td",{}, el("div",{class:"row-act"},
-          st[1]==="Open" ? el("button",{class:"btn btn-sm",onclick:()=>copy(shareText(i.code,i.label))},"Copy") : null,
-          st[1]==="Open" ? el("button",{class:"btn btn-sm btn-danger",onclick:()=>act("admin_invite_set_active",{p_id:i.id,p_active:false},"Code disabled")},"Disable") : null,
-          !i.active ? el("button",{class:"btn btn-sm",onclick:()=>act("admin_invite_set_active",{p_id:i.id,p_active:true},"Code enabled")},"Enable") : null))));
-    });
-    list.append(el("div",{class:"tw"}, el("table",{}, el("thead",{}, el("tr",{}, el("th",{},"Code"), el("th",{},"For"), el("th",{class:"hide-m"},"Uses"),
-      el("th",{class:"hide-m"},"Expires"), el("th",{},"Status"), el("th",{}))), tb)));
-  }
-  main.append(list);
-}
-function shareText(code, label){
-  return `Hi${label?" "+label:""}! Here's your buhat invite 🎉\n\n1. Open ${CAFE_URL}\n2. Tap “Create account”\n3. Enter your café name, email, a password and this invite code: ${code}\n4. Confirm the email we send you, then log in.\n\nMessage me if you get stuck!`;
-}
-function newCodeBox(code, label){
-  return el("div",{class:"newcode"}, el("span",{class:"code"},code),
-    el("button",{class:"btn btn-sm",onclick:()=>copy(code)},"Copy code"),
-    el("button",{class:"btn btn-sm",onclick:()=>copy(shareText(code,label))},"Copy message"),
-    el("a",{class:"btn btn-sm btn-brass",target:"_blank",rel:"noopener",href:"https://wa.me/?text="+encodeURIComponent(shareText(code,label))},"Share on WhatsApp"));
-}
-
-/* ---------- Billing ---------- */
-function renderBilling(main){
-  pageTop(main,"Billing");
-  const cs=cafes().filter(c=>!c.is_mugna);
-  const card=el("div",{class:"card"});
-  if(!cs.length){ card.append(el("div",{class:"empty"},"No client cafés yet.")); main.append(card); return; }
-  const order=c=>{ const d=dueState(c); if(c.status!=="active") return 9e6; if(!c.billing) return 8e6; if(!d) return 7e6; return d.d==null?6e6:d.d; };
-  const tb=el("tbody");
-  [...cs].sort((a,b)=>order(a)-order(b)).forEach(c=>{
-    const b=c.billing, d=dueState(c);
-    tb.append(el("tr",{},
-      el("td",{class:"name"}, el("b",{},c.display_name), el("small",{}, c.status!=="active"?"paused":b&&b.contact_name?b.contact_name:"")),
-      el("td",{}, !b?"—":b.plan==="monthly"?peso0(b.monthly_fee)+"/mo":b.plan==="free"?"Free":"Trial"),
-      el("td",{}, d?el("span",{class:"pill "+d.cls},d.txt):!b?el("span",{class:"pill p-dim"},"Not set"):"—"),
-      el("td",{class:"hide-m"}, c.last_payment ? `${peso0(c.last_payment.amount)} · ${fmtDate(c.last_payment.paid_on)}` : el("span",{class:"dim"},"none")),
-      el("td",{class:"hide-m"}, peso0(c.paid_total)),
-      el("td",{}, el("div",{class:"row-act"},
-        b&&b.contact_phone&&d ? el("a",{class:"btn btn-sm",target:"_blank",rel:"noopener",href:waHref(b.contact_phone, reminderText(c))},"Remind") : null,
-        el("button",{class:"btn btn-sm",onclick:()=>paymentModal(c)},"Payment"),
-        el("button",{class:"btn btn-sm",onclick:()=>openCafe(c)},"Open")))));
-  });
-  card.append(el("div",{class:"tw"}, el("table",{}, el("thead",{}, el("tr",{}, el("th",{},"Café"), el("th",{},"Plan"), el("th",{},"Status"),
-    el("th",{class:"hide-m"},"Last payment"), el("th",{class:"hide-m"},"Paid to date"), el("th",{}))), tb)));
-  main.append(card, el("p",{class:"note"},"Recording a monthly payment moves that café's next due date forward by the months it covers. Set a café's plan and fee in Cafés → open the café → Billing."));
-}
-
-/* ---------- Activity ---------- */
-const LOG={ invite_create:"Created invite", invite_disable:"Disabled invite", invite_enable:"Enabled invite", signups_open:"Opened sign-ups to everyone",
-  signups_invite_only:"Set sign-ups to invite only", cafe_paused:"Paused café", cafe_active:"Reactivated café", cafe_closed:"Closed café", cafe_rename:"Renamed café",
-  billing_save:"Updated billing", payment_add:"Recorded payment", payment_delete:"Undid payment", owner_pin_reset:"Reset owner PIN",
-  device_unlink:"Unlinked device", owner_link:"Linked owner email", owner_unlink:"Removed owner email" };
-function logText(l){
-  const d=l.detail||{}, extra = d.code ? " "+d.code : d.amount!=null ? " "+peso(d.amount) : d.email ? " "+d.email : d.device ? " “"+d.device+"”" : d.name ? " → "+d.name : "";
-  return (LOG[l.action]||l.action) + extra;
-}
-function renderLog(main){
-  pageTop(main,"Activity");
-  const byId=Object.fromEntries(cafes().map(c=>[c.id,c.display_name]));
-  const card=el("div",{class:"card"});
-  const log=S.data.log||[];
-  if(!log.length) card.append(el("div",{class:"empty"},"Nothing yet. Everything you do here gets listed."));
-  log.forEach(l=>card.append(el("div",{class:"list-row"},
-    el("div",{class:"name"}, el("b",{},logText(l)), el("small",{}, (l.cafe_id?(byId[l.cafe_id]||"café")+" · ":"")+(l.admin||""))),
-    el("span",{class:"dim",style:"font-size:13px;white-space:nowrap"}, fmtDT(l.at)))));
-  main.append(card);
-}
-
-document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible" && S.data && !document.querySelector(".modal")) load(); });
-boot();
 </script>
 </body>
 </html>
