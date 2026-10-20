@@ -125,6 +125,30 @@ tr.click{cursor:pointer} tr.click:hover td{background:var(--card2)}
 .spin{display:inline-block;width:16px;height:16px;border:2px solid var(--smoke);border-top-color:var(--brass);border-radius:50%;animation:sp .7s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 
+
+/* support + feedback + plans */
+.sup{display:grid;grid-template-columns:280px minmax(0,1fr);gap:16px;align-items:start}
+.threads .th{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid transparent;background:none;cursor:pointer}
+.threads .th:hover{background:var(--card2)} .threads .th.on{background:var(--card2);border-color:var(--smoke)}
+.threads .th b{display:flex;justify-content:space-between;gap:8px} .threads .th small{color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat{display:flex;flex-direction:column;gap:10px;height:min(60vh,560px);overflow-y:auto;padding:4px 2px 10px}
+.bub{max-width:78%;padding:9px 12px;border-radius:14px;font-size:14.5px;white-space:pre-wrap;word-wrap:break-word}
+.bub.cafe{align-self:flex-start;background:var(--card2);border:1px solid var(--smoke);border-bottom-left-radius:4px}
+.bub.buhat{align-self:flex-end;background:var(--brass);color:var(--onyx);border-bottom-right-radius:4px}
+.bub .m{font-size:11.5px;opacity:.75;margin-top:3px}
+.compose{display:flex;gap:8px;align-items:flex-end;border-top:1px solid var(--line);padding-top:12px}
+.compose textarea{flex:1;resize:vertical;min-height:44px}
+.fb{padding:14px 0;border-bottom:1px solid var(--line)} .fb:last-child{border-bottom:0}
+.fb .top-l{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+.fb p{margin:8px 0 0;white-space:pre-wrap}
+.st{color:#e0a526;letter-spacing:1px}
+.feat-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.feat-row:last-child{border-bottom:0}
+.feat-row small{display:block;color:var(--dim)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chipb{border:1px solid var(--smoke);background:var(--onyx);border-radius:999px;padding:5px 12px;font-size:13.5px;cursor:pointer;color:var(--muted)}
+.chipb.on{background:var(--ivory);color:var(--onyx);border-color:var(--ivory)}
+@media(max-width:860px){.sup{grid-template-columns:1fr}}
 @media(max-width:1000px){ .kpis{grid-template-columns:1fr 1fr} .two{grid-template-columns:1fr} }
 @media(max-width:760px){
   .shell{grid-template-columns:minmax(0,1fr)}
@@ -236,7 +260,19 @@ function confirmBox(title, text, okLabel, onOk, danger){
 
 /* ------------------------------------------------------------------ state */
 const S = { data:null, tab:"overview", openCafe:null };
-const TABS=[["overview","Overview"],["cafes","Cafés"],["invites","Invite codes"],["billing","Billing"],["log","Activity"]];
+const TABS=[["overview","Overview"],["cafes","Cafés"],["support","Support"],["feedback","Feedback"],["invites","Invite codes"],["billing","Billing"],["plans","Plans & ads"],["log","Activity"]];
+const PLAN_FEATURES=[
+  {key:"shifts",       label:"Shifts & staff roster",                    desc:"Clock in/out log, staff list, My Week"},
+  {key:"inventory",    label:"Inventory",                                desc:"Stock levels and ingredients"},
+  {key:"expenses",     label:"Expense ledger",                           desc:"Expense list and approvals"},
+  {key:"reports_basic",label:"Product analytics",                        desc:"Best sellers and product trends"},
+  {key:"payroll",      label:"Payroll & payslips",                       desc:"Calendar, OT, payslips, COE"},
+  {key:"books",        label:"Books & balance sheet",                    desc:"Owner money, journal (Mugnâ-only for now)"},
+  {key:"finance_pro",  label:"Partner cash, opex plan & profit sharing", desc:"Finance extras"},
+  {key:"reports_pro",  label:"Sales vs expenses & business health",      desc:"Deeper reports"},
+  {key:"documents",    label:"Files & contracts",                        desc:"Uploads take storage"},
+  {key:"kiosk",        label:"Customer self-serve menu",                 desc:"The 📱 Self-serve screen"},
+];
 
 /* ------------------------------------------------------------------ auth */
 function show(id){ ["loginView","loadingView","appView"].forEach(v=>$("#"+v).classList.toggle("hide", v!==id)); }
@@ -271,18 +307,25 @@ $("#signOut").onclick=signOut; $("#mSignOut").onclick=signOut;
 
 /* ------------------------------------------------------------------ data */
 async function load(){
-  try{ S.data = await rpc("admin_overview"); }
+  try{ const [o,pl]=await Promise.all([rpc("admin_overview"), rpc("admin_plans").catch(()=>null)]); S.data=o; S.plans=pl; }
   catch(e){
     if(/not a buhat admin/i.test(e.message)) return signOut();
     $("#main").innerHTML=""; $("#main").append(el("div",{class:"card"}, el("h3",{},"Couldn't load"), el("p",{class:"muted"},e.message),
-      el("p",{class:"note"},"If this says admin_overview doesn't exist, run migration 17 in Supabase first."), el("button",{class:"btn",onclick:load},"Try again")));
+      el("p",{class:"note"},"If this says a function doesn't exist, run the latest buhat migration (17, then 18) in Supabase first."), el("button",{class:"btn",onclick:load},"Try again")));
     return;
   }
   render();
   if(S.openCafe){ const c=cafes().find(x=>x.id===S.openCafe); if(c) openCafe(c, true); }
 }
 const cafes = () => (S.data && S.data.cafes) || [];
-const paying = c => !c.is_mugna && c.billing && c.billing.plan==="monthly";
+const paying = c => !c.is_mugna && c.billing && c.billing.plan==="pro";
+function planPill(c){
+  if(c.is_mugna) return el("span",{class:"pill p-info"},"Pro · yours");
+  const b=c.billing||{};
+  if(b.plan==="beta"){ const d=daysUntil(b.beta_until); return el("span",{class:"pill "+(d!=null&&d<=30?"p-warn":"p-info")}, d==null?"Beta":d<0?"Beta ended":`Beta · ${d}d left`); }
+  if(b.plan==="pro"){ const d=dueState(c); return el("span",{class:"pill "+(d?d.cls:"p-good")}, d?"Pro · "+d.txt:"Pro"); }
+  return el("span",{class:"pill p-dim"},"Free");
+}
 function dueState(c){
   if(!paying(c)) return null;
   const d=daysUntil(c.billing.next_due);
@@ -303,9 +346,11 @@ function render(){
   const tabs=$("#tabs"); tabs.innerHTML="";
   TABS.forEach(([id,label])=>tabs.append(el("button",{type:"button",role:"tab","aria-selected":String(S.tab===id),class:S.tab===id?"on":"",
     onclick:()=>{ S.tab=id; try{ sessionStorage.setItem("buhat_admin_tab",id); }catch(_){} render(); window.scrollTo(0,0); load(); }},
-    label, id==="billing" && overdue ? el("span",{class:"count"},overdue) : null)));
+    label, id==="billing" && overdue ? el("span",{class:"count"},overdue) : null,
+    id==="support" && S.data.support_unread ? el("span",{class:"count"},S.data.support_unread) : null,
+    id==="feedback" && S.data.feedback_new ? el("span",{class:"count"},S.data.feedback_new) : null)));
   const main=$("#main"); main.innerHTML="";
-  ({overview:renderOverview, cafes:renderCafes, invites:renderInvites, billing:renderBilling, log:renderLog})[S.tab](main);
+  ({overview:renderOverview, cafes:renderCafes, support:renderSupport, feedback:renderFeedback, invites:renderInvites, billing:renderBilling, plans:renderPlans, log:renderLog})[S.tab](main);
 }
 function pageTop(main, title, right){
   main.append(el("div",{class:"top"}, el("div",{}, el("div",{class:"crumb"},"buhat Café"), el("h1",{},title)), right||null));
@@ -331,10 +376,10 @@ function renderOverview(main){
   const openInv=(S.data.invites||[]).filter(i=>i.active && !i.expired && i.uses<i.max_uses);
   const k=(l,v,s)=>el("div",{class:"card kpi"},el("div",{class:"l"},l),el("div",{class:"v"},v),el("div",{class:"s"},s));
   main.append(el("div",{class:"kpis"},
-    k("Client cafés", String(active.length), paused.length?`${paused.length} paused`:"all active"),
+    k("Client cafés", String(active.length), `${active.filter(c=>c.tier==="pro").length} on Pro · ${active.filter(c=>c.tier!=="pro").length} on Free`+(paused.length?` · ${paused.length} paused`:"")),
     k("Monthly recurring", peso0(mrr), `${active.filter(paying).length} on a monthly plan`),
     k("Overdue", String(over.length), over.length?peso0(over.reduce((a,c)=>a+Number(c.billing.monthly_fee||0),0))+" waiting":"nothing overdue"),
-    k("Open invite codes", String(openInv.length), "not used yet")));
+    k("Beta spots", `${clients.filter(c=>c.billing&&c.billing.plan==="beta").length} / ${S.data.beta_slots??5}`, (()=>{ const e=clients.filter(c=>c.billing&&c.billing.plan==="beta"&&daysUntil(c.billing.beta_until)<=30); return e.length?`${e.length} ending within 30 days`:`${openInv.length} open invite code${openInv.length===1?"":"s"}`; })())));
 
   const due=active.filter(paying).filter(c=>{ const d=dueState(c); return d && d.d!=null && d.d<=7; }).sort((a,b)=>dueState(a).d-dueState(b).d);
   const dueCard=el("div",{class:"card"}, el("h3",{},"Payments due this week"));
@@ -351,6 +396,12 @@ function renderOverview(main){
     el("div",{class:"name"}, el("b",{},c.display_name), el("small",{}, `${c.sales_30d} sales · ${peso0(c.revenue_30d)} in 30 days`)),
     el("span",{class:"dim",style:"font-size:13.5px"}, ago(lastActive(c))))));
   main.append(el("div",{class:"two"}, dueCard, actCard));
+  const inbox=[];
+  if(S.data.support_unread) inbox.push(el("div",{class:"list-row",style:"cursor:pointer",onclick:()=>{ S.tab="support"; render(); }}, el("b",{},`💬 ${S.data.support_unread} unread support message${S.data.support_unread===1?"":"s"}`), el("span",{class:"dim"},"Open Support →")));
+  if(S.data.feedback_new) inbox.push(el("div",{class:"list-row",style:"cursor:pointer",onclick:()=>{ S.tab="feedback"; render(); }}, el("b",{},`📝 ${S.data.feedback_new} new feedback`), el("span",{class:"dim"},"Open Feedback →")));
+  const endBeta=clients.filter(c=>c.status==="active"&&c.billing&&c.billing.plan==="beta"&&daysUntil(c.billing.beta_until)<=30);
+  endBeta.forEach(c=>inbox.push(el("div",{class:"list-row",style:"cursor:pointer",onclick:()=>openCafe(c)}, el("b",{},`⏳ ${c.display_name}'s beta ends ${fmtDate(c.billing.beta_until)}`), el("span",{class:"dim"},"Activate billing →"))));
+  if(inbox.length) main.prepend(el("div",{class:"card",style:"margin-bottom:16px"}, el("h3",{},"Needs you"), ...inbox));
 
   const quiet=active.filter(c=>{ const l=lastActive(c); return !l || (Date.now()-new Date(l))>7*86400000; });
   if(quiet.length){
@@ -374,11 +425,10 @@ function renderCafes(main){
       el("td",{class:"hide-m"}, `${c.staff} staff · ${c.devices} tablet${c.devices===1?"":"s"}`),
       el("td",{class:"hide-m"}, `${c.sales_30d} sales`, el("div",{class:"dim",style:"font-size:12.5px"}, peso0(c.revenue_30d)+" · 30 days")),
       el("td",{class:"hide-m dim"}, ago(lastActive(c))),
-      el("td",{}, c.is_mugna ? el("span",{class:"dim"},"—") : !c.billing ? el("span",{class:"pill p-dim"},"Not set") :
-        c.billing.plan!=="monthly" ? el("span",{class:"pill p-info"}, c.billing.plan==="free"?"Free":"Trial") : el("span",{class:"pill "+d.cls}, d.txt))));
+      el("td",{}, planPill(c), c.support_unread?el("span",{class:"pill p-bad",style:"margin-left:6px"},`💬 ${c.support_unread}`):null)));
   });
   card.append(el("div",{class:"tw"}, el("table",{}, el("thead",{}, el("tr",{}, el("th",{},"Café"), el("th",{},"Status"), el("th",{class:"hide-m"},"Team"),
-    el("th",{class:"hide-m"},"Sales"), el("th",{class:"hide-m"},"Last active"), el("th",{},"Billing"))), tb)));
+    el("th",{class:"hide-m"},"Sales"), el("th",{class:"hide-m"},"Last active"), el("th",{},"Plan"))), tb)));
   main.append(card);
 }
 
@@ -418,6 +468,7 @@ function drawCafe(body, c, det){
       ()=>act("admin_cafe_set_status",{p_cafe:c.id,p_status:"paused"},"Café paused"),true)},"Pause café"));
     else acts.append(el("button",{class:"btn btn-sm btn-brass",onclick:()=>act("admin_cafe_set_status",{p_cafe:c.id,p_status:"active"},"Café is active again")},"Reactivate"));
   }
+  acts.append(el("button",{class:"btn btn-sm",onclick:()=>{ document.querySelectorAll(".drawer,.scrim:not(.modal-scrim)").forEach(x=>x.remove()); S.openCafe=null; S.thread=c.id; S.tab="support"; render(); }},"💬 Chat"));
   acts.append(el("a",{class:"btn btn-sm",href:CAFE_URL,target:"_blank",rel:"noopener"},"Open app ↗"));
   st.append(acts);
   if(c.status!=="active" && !c.is_mugna) st.append(el("p",{class:"note"},"Paused: the café sees a “paused, message buhat” screen."));
@@ -425,8 +476,30 @@ function drawCafe(body, c, det){
 
   // billing
   if(!c.is_mugna){
-    const b=c.billing||{plan:"monthly",monthly_fee:0,setup_fee:0};
-    const f={ plan:el("select",{class:"in"}, ...[["monthly","Monthly"],["trial","Free trial"],["free","Free"]].map(([v,l])=>el("option",{value:v,selected:b.plan===v},l))),
+    const b=c.billing||{plan:"free",monthly_fee:0,setup_fee:0};
+    // plan
+    const pcard=el("div",{class:"card"}, el("div",{style:"display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px"},
+      el("h3",{style:"margin:0"},"Plan"), planPill(c)));
+    const pa=el("div",{class:"row-act",style:"justify-content:flex-start"});
+    if(b.plan==="beta"){
+      const until=el("input",{class:"in",type:"date",value:b.beta_until||"",style:"max-width:200px"});
+      pcard.append(el("p",{class:"muted",style:"margin:0 0 10px;font-size:14px"},`Free Pro beta${b.beta_started?" since "+fmtDate(b.beta_started):""}. When it ends they move to Free unless you activate billing.`),
+        el("div",{style:"display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin-bottom:12px"}, el("label",{class:"f"},el("span",{},"Beta ends"),until),
+          el("button",{class:"btn btn-sm",onclick:()=>act("admin_start_beta",{p_cafe:c.id,p_until:until.value||null},"Beta end date saved")},"Save date")));
+    } else if(b.plan==="pro"){
+      pcard.append(el("p",{class:"muted",style:"margin:0 0 10px;font-size:14px"},`Paid Pro · ${peso(b.monthly_fee)} a month.`));
+    } else {
+      pcard.append(el("p",{class:"muted",style:"margin:0 0 10px;font-size:14px"},"Free plan: POS, menu, sales and the daily summary, plus the features set to Free in Plans & ads. Last "+((S.plans&&S.plans.free_history_days)||90)+" days of history, house ads."));
+    }
+    if(b.plan!=="beta") pa.append(el("button",{class:"btn btn-sm",onclick:()=>confirmBox(`Start a free beta for ${c.display_name}?`,
+      `They get Pro free for ${S.data.beta_months||6} months (uses 1 of ${S.data.beta_slots??5} beta spots). You'll get a Telegram ping 30 and 7 days before it ends.`,"Start beta",
+      ()=>act("admin_start_beta",{p_cafe:c.id},"Beta started"))},"🧪 Start beta"));
+    if(b.plan!=="pro") pa.append(el("button",{class:"btn btn-sm btn-brass",onclick:()=>activateModal(c)},"💳 Activate billing"));
+    if(b.plan!=="free") pa.append(el("button",{class:"btn btn-sm btn-danger",onclick:()=>confirmBox(`Move ${c.display_name} to Free?`,"Pro screens lock and they see the last "+((S.plans&&S.plans.free_history_days)||90)+" days only. Nothing is deleted.","Move to Free",
+      ()=>act("admin_set_free",{p_cafe:c.id},"Moved to Free"),true)},"Move to Free"));
+    pcard.append(pa);
+    body.append(pcard);
+    const f={ plan:{value:b.plan||"free"},
       monthly_fee:el("input",{class:"in",type:"number",min:"0",step:"1",value:b.monthly_fee||""}),
       setup_fee:el("input",{class:"in",type:"number",min:"0",step:"1",value:b.setup_fee||""}),
       next_due:el("input",{class:"in",type:"date",value:b.next_due||""}),
@@ -436,7 +509,7 @@ function drawCafe(body, c, det){
     const d=dueState(c);
     const bc=el("div",{class:"card"}, el("div",{style:"display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px"},
         el("h3",{style:"margin:0"},"Billing"), d?el("span",{class:"pill "+d.cls},d.txt):null),
-      el("div",{class:"grid3"}, el("label",{class:"f"},el("span",{},"Plan"),f.plan), el("label",{class:"f"},el("span",{},"Monthly fee (₱)"),f.monthly_fee), el("label",{class:"f"},el("span",{},"Next due"),f.next_due)),
+      b.plan==="pro" ? el("div",{class:"grid2"}, el("label",{class:"f"},el("span",{},"Monthly fee (₱)"),f.monthly_fee), el("label",{class:"f"},el("span",{},"Next due"),f.next_due)) : null,
       el("div",{class:"grid3",style:"margin-top:12px"}, el("label",{class:"f"},el("span",{},"Setup fee (₱)"),f.setup_fee), el("label",{class:"f"},el("span",{},"Contact"),f.contact_name), el("label",{class:"f"},el("span",{},"Phone / WhatsApp"),f.contact_phone)),
       el("label",{class:"f",style:"margin-top:12px"},el("span",{},"Notes"),f.notes),
       el("div",{class:"note"}, b.setup_fee>0 ? (b.setup_paid_on?`Setup fee paid ${fmtDate(b.setup_paid_on)}.`:"Setup fee not paid yet.") : ""),
@@ -444,7 +517,7 @@ function drawCafe(body, c, det){
         f.contact_phone.value ? el("a",{class:"btn btn-sm",target:"_blank",rel:"noopener",href:waHref(f.contact_phone.value, reminderText(c))},"WhatsApp reminder") : null,
         el("button",{class:"btn btn-sm",onclick:()=>paymentModal(c)},"Record payment"),
         el("button",{class:"btn btn-sm btn-brass",onclick:async ev=>{ ev.target.disabled=true;
-          const p={}; Object.entries(f).forEach(([k,i])=>p[k]=i.value);
+          const p={}; Object.entries(f).forEach(([k,i])=>p[k]=i.value); if(b.beta_until) p.beta_until=b.beta_until;
           await act("admin_billing_save",{p_cafe:c.id,p},"Billing saved"); ev.target.disabled=false; }},"Save billing")));
     body.append(bc);
 
@@ -613,7 +686,7 @@ function renderBilling(main){
     const b=c.billing, d=dueState(c);
     tb.append(el("tr",{},
       el("td",{class:"name"}, el("b",{},c.display_name), el("small",{}, c.status!=="active"?"paused":b&&b.contact_name?b.contact_name:"")),
-      el("td",{}, !b?"—":b.plan==="monthly"?peso0(b.monthly_fee)+"/mo":b.plan==="free"?"Free":"Trial"),
+      el("td",{}, !b||b.plan==="free"?"Free":b.plan==="beta"?"Beta":peso0(b.monthly_fee)+"/mo"),
       el("td",{}, d?el("span",{class:"pill "+d.cls},d.txt):!b?el("span",{class:"pill p-dim"},"Not set"):"—"),
       el("td",{class:"hide-m"}, c.last_payment ? `${peso0(c.last_payment.amount)} · ${fmtDate(c.last_payment.paid_on)}` : el("span",{class:"dim"},"none")),
       el("td",{class:"hide-m"}, peso0(c.paid_total)),
@@ -631,7 +704,9 @@ function renderBilling(main){
 const LOG={ invite_create:"Created invite", invite_disable:"Disabled invite", invite_enable:"Enabled invite", signups_open:"Opened sign-ups to everyone",
   signups_invite_only:"Set sign-ups to invite only", cafe_paused:"Paused café", cafe_active:"Reactivated café", cafe_closed:"Closed café", cafe_rename:"Renamed café",
   billing_save:"Updated billing", payment_add:"Recorded payment", payment_delete:"Undid payment", owner_pin_reset:"Reset owner PIN",
-  device_unlink:"Unlinked device", owner_link:"Linked owner email", owner_unlink:"Removed owner email" };
+  device_unlink:"Unlinked device", owner_link:"Linked owner email", owner_unlink:"Removed owner email",
+  beta_start:"Started beta", beta_ended:"Beta ended → Free", billing_activate:"Activated billing", plan_free:"Moved to Free",
+  plans_save:"Updated plans", ad_save:"Saved ad", ad_delete:"Deleted ad", support_bot_connect:"Connected Telegram bot" };
 function logText(l){
   const d=l.detail||{}, extra = d.code ? " "+d.code : d.amount!=null ? " "+peso(d.amount) : d.email ? " "+d.email : d.device ? " “"+d.device+"”" : d.name ? " → "+d.name : "";
   return (LOG[l.action]||l.action) + extra;
@@ -649,6 +724,187 @@ function renderLog(main){
 }
 
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible" && S.data && !document.querySelector(".modal")) load(); });
+/* ---------- Activate billing ---------- */
+function activateModal(c){
+  const b=c.billing||{};
+  const fee=el("input",{class:"in",type:"number",min:"0",step:"1",value:b.monthly_fee||"",placeholder:"e.g. 1500"});
+  const first=el("input",{class:"in",type:"date",value:(b.plan==="beta"&&b.beta_until&&daysUntil(b.beta_until)>0)?b.beta_until:todayISO()});
+  openModal(`Activate billing · ${c.display_name}`, el("div",{style:"display:grid;gap:12px"},
+    el("p",{class:"muted",style:"margin:0"},"They move to paid Pro straight away. Record each payment when it comes in; the due date moves forward by the months paid."),
+    el("div",{class:"grid2"}, el("label",{class:"f"},el("span",{},"Monthly fee (₱)"),fee), el("label",{class:"f"},el("span",{},"First payment due"),first))),
+    close=>[el("button",{class:"btn",onclick:close},"Cancel"), el("button",{class:"btn btn-brass",onclick:async e=>{
+      if(fee.value===""||Number(fee.value)<0) return toast("Enter the monthly fee","bad");
+      e.target.disabled=true;
+      if(await act("admin_activate_billing",{p_cafe:c.id,p_fee:Number(fee.value),p_first_due:first.value||null},"Billing activated: they're on Pro")) close(); else e.target.disabled=false; }},"Activate Pro")]);
+}
+
+/* ---------- Support ---------- */
+function renderSupport(main){
+  pageTop(main,"Support");
+  const pl=S.plans||{}, bot=pl.bot||{};
+  if(!bot.connected || !(bot.chats||[]).length) main.append(botCard(true));
+  const threads=(pl.threads||[]);
+  const cs=cafes().filter(c=>!c.is_mugna||threads.some(t=>t.cafe_id===c.id));
+  if(!S.thread && threads.length) S.thread=threads[0].cafe_id;
+  const left=el("div",{class:"card threads"}, el("h3",{},"Conversations"));
+  if(!threads.length) left.append(el("div",{class:"empty",style:"text-align:left"},"No messages yet. Cafés write from Help → Chat with buhat."));
+  threads.forEach(t=>left.append(el("button",{type:"button",class:"th"+(S.thread===t.cafe_id?" on":""),onclick:()=>{ S.thread=t.cafe_id; render(); }},
+    el("b",{}, el("span",{},t.cafe), t.unread?el("span",{class:"pill p-bad"},t.unread):el("span",{class:"dim",style:"font-weight:400;font-size:12.5px"},ago(t.last_at))),
+    el("small",{}, (t.last_sender==="buhat"?"You: ":"")+t.last))));
+  const others=cs.filter(c=>!threads.some(t=>t.cafe_id===c.id));
+  if(others.length){
+    const sel=el("select",{class:"in",style:"margin-top:12px"}, el("option",{value:""},"Message a café…"), ...others.map(c=>el("option",{value:c.id},c.display_name)));
+    sel.onchange=()=>{ if(sel.value){ S.thread=sel.value; render(); } };
+    left.append(sel);
+  }
+  const right=el("div",{class:"card"});
+  const c=cafes().find(x=>x.id===S.thread);
+  if(!c){ right.append(el("div",{class:"empty"},"Pick a conversation.")); }
+  else{
+    right.append(el("div",{style:"display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px"},
+      el("h3",{style:"margin:0"},c.display_name), el("div",{style:"display:flex;gap:6px;align-items:center"}, planPill(c), el("button",{class:"btn btn-sm",onclick:()=>openCafe(c)},"Café details"))));
+    const chat=el("div",{class:"chat",role:"log"},el("div",{class:"empty"},el("span",{class:"spin"})));
+    const box=el("textarea",{class:"in",rows:"2",placeholder:`Reply to ${c.display_name}…`});
+    const send=el("button",{class:"btn btn-brass",onclick:async()=>{ const v=box.value.trim(); if(!v) return; send.disabled=true;
+      try{ const r=await rpc("admin_support_reply",{p_cafe:c.id,p_body:v}); if(r&&r.ok){ box.value=""; await drawThread(); } else toast((r&&r.error)||"Couldn't send","bad"); }
+      catch(e){ toast(e.message,"bad"); } send.disabled=false; box.focus(); }},"Send");
+    box.addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); send.click(); } });
+    right.append(chat, el("div",{class:"compose"}, box, send), el("p",{class:"note"},"They see your reply in the app (Help → Chat with buhat). You can also reply from Telegram by replying to their message."));
+    async function drawThread(){
+      let r; try{ r=await rpc("admin_support_list",{p_cafe:c.id}); }catch(e){ chat.innerHTML=""; chat.append(el("div",{class:"empty"},e.message)); return; }
+      chat.innerHTML="";
+      if(!r.messages.length) chat.append(el("div",{class:"empty"},"No messages yet. Say hello 👋"));
+      r.messages.forEach(m=>chat.append(el("div",{class:"bub "+m.sender}, m.body,
+        el("div",{class:"m"}, (m.sender==="cafe"?(m.author||"Café"):"buhat"+(m.via==="telegram"?" · via Telegram":""))+" · "+fmtDT(m.at)+(m.sender==="buhat"?(m.seen?" · seen":""):"")))));
+      chat.scrollTop=chat.scrollHeight;
+      const t=(S.plans.threads||[]).find(x=>x.cafe_id===c.id); if(t && t.unread){ S.data.support_unread=Math.max(0,(S.data.support_unread||0)-t.unread); t.unread=0; }
+    }
+    drawThread();
+  }
+  main.append(el("div",{class:"sup"}, left, right));
+  if(bot.connected && (bot.chats||[]).length) main.append(el("div",{style:"margin-top:16px"}, botCard(false)));
+}
+function botCard(prominent){
+  const bot=(S.plans&&S.plans.bot)||{};
+  const card=el("div",{class:"card",style:prominent?"border-color:var(--brass);margin-bottom:16px":""}, el("h3",{},"Telegram: buhat Support bot"));
+  if(!bot.connected){
+    const tok=el("input",{class:"in",placeholder:"Paste the bot token from BotFather",autocomplete:"off"});
+    card.append(el("ol",{class:"muted",style:"margin:0 0 12px;padding-left:20px;font-size:14px;line-height:1.7"},
+        el("li",{},"In Telegram, open ", el("b",{},"@BotFather"), " → /newbot → name it e.g. “buhat Support”."),
+        el("li",{},"Copy the token it gives you and paste it here."),
+        el("li",{},"Deploy the ", el("b",{},"buhat-support"), " edge function in Supabase (see the setup steps).")),
+      el("div",{style:"display:flex;gap:8px;flex-wrap:wrap"}, tok, el("button",{class:"btn btn-brass",onclick:async e=>{ e.target.disabled=true;
+        await act("admin_support_bot_save",{p_token:tok.value},"Bot connected. Now link your Telegram."); e.target.disabled=false; }},"Connect bot")));
+    return card;
+  }
+  const chats=bot.chats||[];
+  card.append(el("p",{class:"muted",style:"margin:0 0 8px;font-size:14px"}, chats.length
+      ? "Café messages and feedback arrive in these Telegram chats. Reply to a message there to answer the café."
+      : "Last step: open your bot in Telegram and send this message:"),
+    el("div",{style:"display:flex;gap:8px;align-items:center;flex-wrap:wrap"}, el("span",{class:"code"},"/start "+(bot.link_code||"")),
+      el("button",{class:"btn btn-sm",onclick:()=>copy("/start "+bot.link_code)},"Copy"),
+      el("button",{class:"btn btn-sm",onclick:load},"I sent it → refresh")));
+  chats.forEach(ch=>card.append(el("div",{class:"list-row"}, el("span",{},"✅ ", ch.name||ch.chat_id),
+    el("button",{class:"btn btn-sm btn-danger",onclick:()=>confirmBox("Disconnect this chat?","It stops getting café messages.","Disconnect",()=>act("admin_support_chat_remove",{p_chat:ch.chat_id},"Disconnected"),true)},"Disconnect"))));
+  if(chats.length) card.append(el("p",{class:"note"},"Adding Bryan or a teammate? Have them send the same /start message to the bot."));
+  const re=el("details",{style:"margin-top:10px"}, el("summary",{class:"dim",style:"cursor:pointer;font-size:13.5px"},"Use a different bot"));
+  const tok=el("input",{class:"in",placeholder:"New bot token",autocomplete:"off"});
+  re.append(el("div",{style:"display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"}, tok, el("button",{class:"btn btn-sm",onclick:()=>act("admin_support_bot_save",{p_token:tok.value},"Bot updated. Send the new /start code from Telegram.")},"Save")));
+  card.append(re);
+  return card;
+}
+
+/* ---------- Feedback ---------- */
+let FB_FILTER="new";
+function renderFeedback(main){
+  pageTop(main,"Feedback");
+  const all=(S.plans&&S.plans.feedback)||[];
+  const rated=all.filter(f=>f.rating), avg=rated.length?(rated.reduce((a,f)=>a+f.rating,0)/rated.length):null;
+  const k=(l,v,s)=>el("div",{class:"card kpi"},el("div",{class:"l"},l),el("div",{class:"v"},v),el("div",{class:"s"},s));
+  main.append(el("div",{class:"kpis"},
+    k("Average rating", avg?avg.toFixed(1)+" ★":"—", `${rated.length} rating${rated.length===1?"":"s"}`),
+    k("New", String(all.filter(f=>f.status==="new").length), "not looked at yet"),
+    k("Bugs open", String(all.filter(f=>f.kind==="bug"&&f.status!=="done").length), "not marked done"),
+    k("Ideas", String(all.filter(f=>f.kind==="idea").length), "all time")));
+  const filters=[["new","New"],["all","All"],["bug","🐞 Bugs"],["idea","💡 Ideas"],["praise","🎉 Praise"],["checkin","📋 Check-ins"],["done","Done"]];
+  const chips=el("div",{class:"chips",style:"margin-bottom:12px"}, ...filters.map(([v,l])=>el("button",{type:"button",class:"chipb"+(FB_FILTER===v?" on":""),onclick:()=>{ FB_FILTER=v; render(); }},l)));
+  const list=all.filter(f=> FB_FILTER==="all"?true : FB_FILTER==="new"?f.status==="new" : FB_FILTER==="done"?f.status==="done" : f.kind===FB_FILTER);
+  const card=el("div",{class:"card"}, chips);
+  if(!list.length) card.append(el("div",{class:"empty"}, all.length?"Nothing here.":"No feedback yet. Cafés send it from Help → Send feedback."));
+  const KL={bug:"🐞 Bug",idea:"💡 Idea",praise:"🎉 Praise",checkin:"📋 Check-in",other:"📝 Other"};
+  list.forEach(f=>card.append(el("div",{class:"fb"},
+    el("div",{class:"top-l"},
+      el("div",{}, el("b",{},KL[f.kind]||f.kind), " · ", el("span",{},f.cafe), el("span",{class:"dim"}," · "+(f.author||"")+(f.role&&f.role!=="owner"?" (staff)":"")+" · "+fmtDT(f.created_at))),
+      el("div",{class:"row-act"},
+        f.rating?el("span",{class:"st","aria-label":f.rating+" stars"},"★".repeat(f.rating)+"☆".repeat(5-f.rating)):null,
+        el("span",{class:"pill "+(f.status==="new"?"p-bad":f.status==="done"?"p-good":"p-dim")},f.status==="new"?"New":f.status==="done"?"Done":"Seen"))),
+    f.body?el("p",{},f.body):null,
+    f.section?el("div",{class:"dim",style:"font-size:12.5px;margin-top:4px"},"Screen: "+f.section):null,
+    el("div",{class:"row-act",style:"justify-content:flex-start;margin-top:8px"},
+      f.status!=="seen"?el("button",{class:"btn btn-sm",onclick:()=>act("admin_feedback_set_status",{p_id:f.id,p_status:"seen"})},"Mark seen"):null,
+      f.status!=="done"?el("button",{class:"btn btn-sm",onclick:()=>act("admin_feedback_set_status",{p_id:f.id,p_status:"done"},"Marked done")},"✓ Done"):null,
+      f.status!=="new"?el("button",{class:"btn btn-sm",onclick:()=>act("admin_feedback_set_status",{p_id:f.id,p_status:"new"})},"Reopen"):null,
+      el("button",{class:"btn btn-sm",onclick:()=>{ S.thread=f.cafe_id; S.tab="support"; render(); }},"💬 Reply in chat")))));
+  main.append(card);
+}
+
+/* ---------- Plans & ads ---------- */
+function renderPlans(main){
+  pageTop(main,"Plans & ads");
+  const pl=S.plans; if(!pl){ main.append(el("div",{class:"card"},el("p",{class:"muted"},"Run migration 18 to switch on plans."))); return; }
+  const feats={...(pl.features||{})};
+  const fc=el("div",{class:"card"}, el("h3",{},"What's on the Free plan?"),
+    el("p",{class:"muted",style:"margin:-4px 0 8px;font-size:14px"},"POS, menu, sales log and the daily sales summary are always free. Beta and paid cafés get everything."));
+  PLAN_FEATURES.forEach(f=>{
+    const seg=el("div",{class:"seg",role:"group","aria-label":f.label});
+    const draw=()=>{ seg.innerHTML=""; [["free","Free"],["pro","Pro only"]].forEach(([v,l])=>seg.append(el("button",{type:"button",class:(feats[f.key]||"free")===v?"on":"","aria-pressed":String((feats[f.key]||"free")===v),onclick:()=>{ feats[f.key]=v; draw(); }},l))); };
+    draw();
+    fc.append(el("div",{class:"feat-row"}, el("div",{}, el("b",{},f.label), el("small",{},f.desc)), seg));
+  });
+  const hist=el("input",{class:"in",type:"number",min:"7",max:"3650",value:pl.free_history_days});
+  const months=el("input",{class:"in",type:"number",min:"1",max:"24",value:pl.beta_months});
+  const slots=el("input",{class:"in",type:"number",min:"0",max:"100",value:pl.beta_slots});
+  const nc=el("div",{class:"card"}, el("h3",{},"Limits & beta"),
+    el("div",{class:"grid3"}, el("label",{class:"f"},el("span",{},"Free plan history (days)"),hist), el("label",{class:"f"},el("span",{},"Beta length (months)"),months), el("label",{class:"f"},el("span",{},`Beta spots (${pl.beta_used} used)`),slots)),
+    el("p",{class:"note"},"Free cafés only see records from the last N days. Nothing is deleted; Pro brings it all back."),
+    el("div",{class:"row-act",style:"margin-top:12px"}, el("button",{class:"btn btn-brass",onclick:async e=>{ e.target.disabled=true;
+      await act("admin_plans_save",{p:{features:feats,free_history_days:Number(hist.value),beta_months:Number(months.value),beta_slots:Number(slots.value)}},"Plans saved");
+      e.target.disabled=false; }},"Save plans")));
+  main.append(fc, nc);
+
+  const ac=el("div",{class:"card"}, el("div",{style:"display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px"},
+    el("h3",{style:"margin:0"},"House ads"), el("button",{class:"btn btn-sm btn-brass",onclick:()=>adModal()},"＋ New ad")),
+    el("p",{class:"muted",style:"margin:0 0 8px;font-size:14px"},"Shown to café owners on the Free plan only (Dashboard and Sales Summary), never to customers. One shows at a time; a higher weight shows more often."));
+  const ads=pl.ads||[];
+  if(!ads.length) ac.append(el("div",{class:"empty"},"No ads yet. Try one that says “Unlock all your history with Pro”, or a sponsor's offer."));
+  const t=todayISO();
+  ads.forEach(a=>{
+    const live=a.active && (!a.starts_on||a.starts_on<=t) && (!a.ends_on||a.ends_on>=t);
+    ac.append(el("div",{class:"list-row"},
+      el("div",{class:"name"}, el("b",{},a.title), el("small",{}, [a.sponsor?"Sponsor: "+a.sponsor:"From buhat", `${a.views} views · ${a.clicks} clicks`+(a.views?` (${Math.round(a.clicks/a.views*100)}%)`:""),
+        a.ends_on?"until "+fmtDate(a.ends_on):null].filter(Boolean).join(" · "))),
+      el("div",{class:"row-act"}, el("span",{class:"pill "+(live?"p-good":"p-dim")}, live?"Showing":a.active?"Scheduled":"Off"),
+        el("button",{class:"btn btn-sm",onclick:()=>adModal(a)},"Edit"),
+        el("button",{class:"btn btn-sm",onclick:()=>act("admin_ad_save",{p:{...a,active:!a.active}}, a.active?"Ad turned off":"Ad turned on")}, a.active?"Turn off":"Turn on"),
+        el("button",{class:"btn btn-sm btn-danger",onclick:()=>confirmBox("Delete this ad?",a.title,"Delete",()=>act("admin_ad_delete",{p_id:a.id},"Ad deleted"),true)},"Delete"))));
+  });
+  main.append(ac);
+}
+function adModal(a){
+  a=a||{weight:1,active:true};
+  const i=(v,ph,type)=>el("input",{class:"in",value:v||"",placeholder:ph||"",type:type||"text"});
+  const f={title:i(a.title,"e.g. See all your history"), body:i(a.body,"One short line"), cta_label:i(a.cta_label,"e.g. Learn more"),
+    cta_url:i(a.cta_url,"https://… or wa.me/…"), sponsor:i(a.sponsor,"Leave empty for buhat's own ads"),
+    starts_on:i(a.starts_on,"","date"), ends_on:i(a.ends_on,"","date"), weight:el("input",{class:"in",type:"number",min:"1",max:"10",value:a.weight||1})};
+  const L=(t,x)=>el("label",{class:"f"},el("span",{},t),x);
+  openModal(a.id?"Edit ad":"New ad", el("div",{style:"display:grid;gap:12px"},
+    L("Title",f.title), L("Text",f.body), el("div",{class:"grid2"}, L("Button text",f.cta_label), L("Button link",f.cta_url)),
+    L("Sponsor",f.sponsor), el("div",{class:"grid3"}, L("Starts",f.starts_on), L("Ends",f.ends_on), L("Weight (1–10)",f.weight))),
+    close=>[el("button",{class:"btn",onclick:close},"Cancel"), el("button",{class:"btn btn-brass",onclick:async e=>{
+      const p={id:a.id||null, active:a.active!==false}; Object.entries(f).forEach(([k,x])=>p[k]=x.value);
+      e.target.disabled=true; if(await act("admin_ad_save",{p},"Ad saved")) close(); else e.target.disabled=false; }},"Save ad")]);
+}
+
 boot();
 </script>
 </body>
